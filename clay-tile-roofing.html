@@ -408,6 +408,44 @@ nav.primary-nav.open {
 }
 nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px; }
 
+
+/* ---------- Job photos ---------- */
+.jobphoto { margin: 0 0 22px; }
+.jobphoto img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: block;
+}
+.jobphoto figcaption {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  margin-top: 9px;
+  line-height: 1.5;
+}
+
+/* Hero with a real photo behind it. The gradient stays as an overlay so the
+   headline keeps its contrast — a photo alone would leave white text sitting
+   on a bright sky. */
+.hero.has-photo {
+  /* Horizontal gradient: heavy on the left where the headline sits, easing off
+     to the right so the photo is actually legible as a roofing job. A uniform
+     dark wash made the image read as grey noise. */
+  background-image:
+    linear-gradient(100deg, rgba(15,36,56,.94) 0%, rgba(15,36,56,.88) 38%, rgba(10,24,38,.55) 72%, rgba(10,24,38,.42) 100%),
+    url("/hero-tile-underlayment.jpg");
+  background-size: cover;
+  background-position: center 45%;
+}
+@media (max-width: 700px) {
+  .hero.has-photo {
+    background-image:
+      linear-gradient(135deg, rgba(15,36,56,.94) 0%, rgba(10,24,38,.90) 100%),
+      url("/hero-tile-underlayment.jpg");
+  }
+}
+
 </style>
 <script type="application/ld+json">
 {
@@ -494,6 +532,12 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
 <section>
   <div class="container two-col">
     <div>
+      
+<figure class="jobphoto">
+  <img src="/tile-lift-and-relay.jpg" alt="Tile lift-and-relay in progress on a Phoenix home: new TileSeal HT underlayment installed with the original concrete tile stacked on the roof ready to be re-laid" loading="lazy" width="1100" height="732">
+  <figcaption>A lift-and-relay on a Phoenix-area roof — the original tile comes off and is stacked, new underlayment goes down, then the same tile goes back on.</figcaption>
+</figure>
+
       <p>When people in the Valley say &ldquo;tile roof,&rdquo; they usually mean concrete tile in an S profile &mdash; one piece, machine-made, what tract builders have installed for forty years. <strong>Clay is a different animal.</strong> It is fired rather than cast, its color runs through the body of the tile instead of sitting on the surface, and the traditional profiles are laid as two separate pieces rather than one.</p>
       <p><strong>Two-piece mission tile</strong> &mdash; also called pan and cover, or pan and cap &mdash; is the original Spanish and Mission profile. A trough-shaped pan carries water down the roof, and a barrel-shaped cover caps the seam between pans. It is the look on the California missions, on Spanish Colonial Revival homes, and on the higher-end custom work around Arcadia, the Biltmore corridor, Paradise Valley and north Scottsdale. A <strong>Romano</strong> variation swaps the rounded pan for a flat rectangular one, which reads more formal and more Tuscan.</p>
       <p><strong>Sand-cast clay</strong> is cast in sand molds rather than extruded, and every tile comes out slightly different &mdash; irregular edges, thickness that varies across the field, color that shifts tile to tile. On a Mediterranean or Southwestern home that irregularity is the entire point; it is what makes a roof look like it has been there a hundred years. It is also genuinely brittle, and it is expensive, which is why it belongs with a crew that has handled it before.</p>

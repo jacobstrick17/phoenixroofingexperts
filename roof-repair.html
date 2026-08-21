@@ -408,6 +408,44 @@ nav.primary-nav.open {
 }
 nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px; }
 
+
+/* ---------- Job photos ---------- */
+.jobphoto { margin: 0 0 22px; }
+.jobphoto img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: block;
+}
+.jobphoto figcaption {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  margin-top: 9px;
+  line-height: 1.5;
+}
+
+/* Hero with a real photo behind it. The gradient stays as an overlay so the
+   headline keeps its contrast — a photo alone would leave white text sitting
+   on a bright sky. */
+.hero.has-photo {
+  /* Horizontal gradient: heavy on the left where the headline sits, easing off
+     to the right so the photo is actually legible as a roofing job. A uniform
+     dark wash made the image read as grey noise. */
+  background-image:
+    linear-gradient(100deg, rgba(15,36,56,.94) 0%, rgba(15,36,56,.88) 38%, rgba(10,24,38,.55) 72%, rgba(10,24,38,.42) 100%),
+    url("/hero-tile-underlayment.jpg");
+  background-size: cover;
+  background-position: center 45%;
+}
+@media (max-width: 700px) {
+  .hero.has-photo {
+    background-image:
+      linear-gradient(135deg, rgba(15,36,56,.94) 0%, rgba(10,24,38,.90) 100%),
+      url("/hero-tile-underlayment.jpg");
+  }
+}
+
 </style>
 <script type="application/ld+json">
 {
@@ -494,6 +532,12 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
 <section>
   <div class="container two-col">
     <div>
+      
+<figure class="jobphoto">
+  <img src="/tile-roof-repair.jpg" alt="Close-up of a Phoenix concrete tile roof showing deteriorated pipe flashing boots that are a common source of leaks" loading="lazy" width="1100" height="732">
+  <figcaption>Deteriorated vent boots on a tile roof. Leaks usually start at penetrations like these, not in the open field of the roof.</figcaption>
+</figure>
+
       <p>Arizona roofs take a beating that most parts of the country never see: intense UV exposure that dries out shingles and underlayment, summer heat cycling that cracks tile and cement, and monsoon-season wind, dust (haboobs), and downpours that find every weak point in a roofing system. A small issue ignored through one more monsoon season often turns into a full interior repair.</p>
       <p>Phoenix Roofing Experts provides prompt, honest roof repair for homeowners and businesses across the Valley. We diagnose the actual source of a leak — not just the spot where water is showing up inside — and repair it correctly the first time.</p>
       <ul class="service-list">

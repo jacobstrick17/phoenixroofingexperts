@@ -408,6 +408,44 @@ nav.primary-nav.open {
 }
 nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px; }
 
+
+/* ---------- Job photos ---------- */
+.jobphoto { margin: 0 0 22px; }
+.jobphoto img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: block;
+}
+.jobphoto figcaption {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  margin-top: 9px;
+  line-height: 1.5;
+}
+
+/* Hero with a real photo behind it. The gradient stays as an overlay so the
+   headline keeps its contrast — a photo alone would leave white text sitting
+   on a bright sky. */
+.hero.has-photo {
+  /* Horizontal gradient: heavy on the left where the headline sits, easing off
+     to the right so the photo is actually legible as a roofing job. A uniform
+     dark wash made the image read as grey noise. */
+  background-image:
+    linear-gradient(100deg, rgba(15,36,56,.94) 0%, rgba(15,36,56,.88) 38%, rgba(10,24,38,.55) 72%, rgba(10,24,38,.42) 100%),
+    url("/hero-tile-underlayment.jpg");
+  background-size: cover;
+  background-position: center 45%;
+}
+@media (max-width: 700px) {
+  .hero.has-photo {
+    background-image:
+      linear-gradient(135deg, rgba(15,36,56,.94) 0%, rgba(10,24,38,.90) 100%),
+      url("/hero-tile-underlayment.jpg");
+  }
+}
+
 </style>
 <script type="application/ld+json">
 {
@@ -494,6 +532,12 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
 <section>
   <div class="container two-col">
     <div>
+      
+<figure class="jobphoto">
+  <img src="/flat-roof-recover.jpg" alt="Low-slope commercial roof in Phoenix with self-adhered modified bitumen base sheet and cap sheet rolls staged beside a rooftop HVAC unit" loading="lazy" width="1100" height="732">
+  <figcaption>Modified bitumen base and cap sheet staged on a low-slope roof, alongside the rooftop HVAC unit that most flat-roof leaks eventually involve.</figcaption>
+</figure>
+
       <p>Commercial roofs in the Phoenix area face constant thermal cycling and intense UV exposure, which accelerates membrane aging on TPO, EPDM, and built-up roofing systems. Left unmanaged, small membrane failures turn into interior water damage, tenant complaints, and costly emergency calls.</p>
       <p>We work with property managers and business owners on both one-time repair or replacement projects and ongoing preventive maintenance programs, scheduled around your operating hours whenever possible.</p>
       <ul class="service-list">

@@ -408,6 +408,44 @@ nav.primary-nav.open {
 }
 nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px; }
 
+
+/* ---------- Job photos ---------- */
+.jobphoto { margin: 0 0 22px; }
+.jobphoto img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: block;
+}
+.jobphoto figcaption {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  margin-top: 9px;
+  line-height: 1.5;
+}
+
+/* Hero with a real photo behind it. The gradient stays as an overlay so the
+   headline keeps its contrast — a photo alone would leave white text sitting
+   on a bright sky. */
+.hero.has-photo {
+  /* Horizontal gradient: heavy on the left where the headline sits, easing off
+     to the right so the photo is actually legible as a roofing job. A uniform
+     dark wash made the image read as grey noise. */
+  background-image:
+    linear-gradient(100deg, rgba(15,36,56,.94) 0%, rgba(15,36,56,.88) 38%, rgba(10,24,38,.55) 72%, rgba(10,24,38,.42) 100%),
+    url("/hero-tile-underlayment.jpg");
+  background-size: cover;
+  background-position: center 45%;
+}
+@media (max-width: 700px) {
+  .hero.has-photo {
+    background-image:
+      linear-gradient(135deg, rgba(15,36,56,.94) 0%, rgba(10,24,38,.90) 100%),
+      url("/hero-tile-underlayment.jpg");
+  }
+}
+
 </style>
 <script type="application/ld+json">
 {
@@ -521,6 +559,7 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
 <section>
   <div class="container two-col">
     <div>
+      
       <p>The median Mesa home was built in <strong>1989</strong>, making the typical Mesa roof around 37 years old. Practically speaking that means most Mesa homes have already been re-roofed once, usually somewhere in the 2000s &mdash; and roofs installed then are now reaching the end of their own service life. A lot of our Mesa work is second-cycle replacement rather than first.</p>
       <p>Mesa is also the most varied city we serve. It runs from 1970s and 1980s shingle-era neighborhoods in the west and central areas, through established master-planned communities like Dobson Ranch and Red Mountain Ranch, out to genuinely new construction in Eastmark. Add the large 55-plus communities, which have their own association requirements and scheduling expectations, and there's no single Mesa roof.</p>
       <p>Because Mesa's older stock is largely asphalt shingle rather than tile, the decision point here is often material rather than repair-versus-replace: whether to put shingle back down or move to tile or a coated system for the longer life and lower attic heat.</p>

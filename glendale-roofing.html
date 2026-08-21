@@ -408,6 +408,44 @@ nav.primary-nav.open {
 }
 nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px; }
 
+
+/* ---------- Job photos ---------- */
+.jobphoto { margin: 0 0 22px; }
+.jobphoto img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: block;
+}
+.jobphoto figcaption {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  margin-top: 9px;
+  line-height: 1.5;
+}
+
+/* Hero with a real photo behind it. The gradient stays as an overlay so the
+   headline keeps its contrast — a photo alone would leave white text sitting
+   on a bright sky. */
+.hero.has-photo {
+  /* Horizontal gradient: heavy on the left where the headline sits, easing off
+     to the right so the photo is actually legible as a roofing job. A uniform
+     dark wash made the image read as grey noise. */
+  background-image:
+    linear-gradient(100deg, rgba(15,36,56,.94) 0%, rgba(15,36,56,.88) 38%, rgba(10,24,38,.55) 72%, rgba(10,24,38,.42) 100%),
+    url("/hero-tile-underlayment.jpg");
+  background-size: cover;
+  background-position: center 45%;
+}
+@media (max-width: 700px) {
+  .hero.has-photo {
+    background-image:
+      linear-gradient(135deg, rgba(15,36,56,.94) 0%, rgba(10,24,38,.90) 100%),
+      url("/hero-tile-underlayment.jpg");
+  }
+}
+
 </style>
 <script type="application/ld+json">
 {
@@ -521,6 +559,7 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
 <section>
   <div class="container two-col">
     <div>
+      
       <p>Glendale's median home was built in <strong>1986</strong>, but the more useful number is the distribution: roughly <strong>23% of Glendale housing was built in the 1970s and another 23% in the 1980s</strong>. Nearly half the city predates 1990, which is a very different profile from the East Valley.</p>
       <p>Practically, that means Glendale is a shingle city more than a tile city. Homes from that era were largely built with asphalt shingle, and after 35 to 50 years of Arizona UV exposure those roofs are typically on their second or third replacement. The failure pattern is different too &mdash; granule loss, curling, and brittleness across the whole roof rather than a single leak you can chase down.</p>
       <p>North Glendale is the exception. Arrowhead Ranch and the communities around it went up in the 1990s and 2000s with tile, which puts them on the same underlayment clock as the East Valley. And the West Valley takes a real beating in monsoon season, so storm and haboob damage is a bigger share of our Glendale calls than it is elsewhere.</p>

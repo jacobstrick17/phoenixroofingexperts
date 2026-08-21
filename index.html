@@ -408,13 +408,51 @@ nav.primary-nav.open {
 }
 nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px; }
 
+
+/* ---------- Job photos ---------- */
+.jobphoto { margin: 0 0 22px; }
+.jobphoto img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: block;
+}
+.jobphoto figcaption {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  margin-top: 9px;
+  line-height: 1.5;
+}
+
+/* Hero with a real photo behind it. The gradient stays as an overlay so the
+   headline keeps its contrast — a photo alone would leave white text sitting
+   on a bright sky. */
+.hero.has-photo {
+  /* Horizontal gradient: heavy on the left where the headline sits, easing off
+     to the right so the photo is actually legible as a roofing job. A uniform
+     dark wash made the image read as grey noise. */
+  background-image:
+    linear-gradient(100deg, rgba(15,36,56,.94) 0%, rgba(15,36,56,.88) 38%, rgba(10,24,38,.55) 72%, rgba(10,24,38,.42) 100%),
+    url("/hero-tile-underlayment.jpg");
+  background-size: cover;
+  background-position: center 45%;
+}
+@media (max-width: 700px) {
+  .hero.has-photo {
+    background-image:
+      linear-gradient(135deg, rgba(15,36,56,.94) 0%, rgba(10,24,38,.90) 100%),
+      url("/hero-tile-underlayment.jpg");
+  }
+}
+
 </style>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "RoofingContractor",
   "name": "Phoenix Roofing Experts",
-  "image": "https://www.phoenixroofingcontractors.info/images/logo.png",
+  "image": "https://www.phoenixroofingcontractors.info/logo.png",
   "url": "https://www.phoenixroofingcontractors.info",
   "telephone": "+14803311017",
   "priceRange": "$$",
@@ -504,7 +542,7 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
 </header>
 
 
-<section class="hero">
+<section class="hero has-photo">
   <div class="container">
     <div>
       <span class="eyebrow" style="color:#ff9a56;">Phoenix, AZ Roofing Contractor</span>
@@ -655,17 +693,57 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
 <section class="alt">
   <div class="container">
     <div class="section-head">
+      <span class="eyebrow">Recent Work</span>
+      <h2>Real Phoenix Roofs, Not Stock Photos</h2>
+      <p>Every photo on this site is a job our crews actually did.</p>
+    </div>
+    <div class="grid grid-3">
+      <figure class="jobphoto"><img src="/tile-relay-aerial.jpg" alt="Aerial view of a tile roof lift-and-relay in progress on a Phoenix-area home" loading="lazy" width="1100" height="733"><figcaption>Tile lift-and-relay &mdash; original tile stacked, new underlayment going down.</figcaption></figure>
+      <figure class="jobphoto"><img src="/shingle-install.jpg" alt="Roofing crew installing new architectural asphalt shingles on a Phoenix home" loading="lazy" width="1100" height="733"><figcaption>Architectural shingle installation over new underlayment.</figcaption></figure>
+      <figure class="jobphoto"><img src="/tile-roof-finished-aerial.jpg" alt="Completed concrete tile roof on a Phoenix-area desert home, seen from above" loading="lazy" width="1100" height="733"><figcaption>A finished tile roof on a desert home in the Valley.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+
+<section class="alt">
+  <div class="container">
+    <div class="section-head">
       <span class="eyebrow">Reviews</span>
       <h2>What Our Customers Say</h2>
       <p>Verified reviews from our Google Business Profile.</p>
     </div>
-    <div class="grid grid-2" style="max-width:900px;margin:0 auto;">
+    <div class="grid grid-3" style="max-width:900px;margin:0 auto;">
       
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p class="quote">"Jacob’s crew made our roof installation in Phoenix so easy. After weeks of worrying about leaks, it was such a relief to see real pros take over. Clean work, on time, and zero stress!"</p>
+          <div class="name">W.H.</div>
+          <div class="role">Roof installation &middot; Phoenix, AZ &middot; 36 weeks ago</div>
+        </div>
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p class="quote">"We had no idea our roof was in such bad shape until Jacob’s team came for routine roof maintenance in Phoenix. They caught problems early and saved us from costly repairs. I highly recommend it!"</p>
+          <div class="name">Makenna F.</div>
+          <div class="role">Roof maintenance &middot; Phoenix, AZ &middot; 37 weeks ago</div>
+        </div>
         <div class="testimonial">
           <div class="stars">★★★★★</div>
           <p class="quote">"The team … handled our roof installation in Seville with professionalism, communication, and patience. They walked us through every detail, answered questions, and executed perfect craftsmanship. The roof looks amazing and stands strong."</p>
           <div class="name">Victor O.</div>
           <div class="role">Roof installation &middot; Seville, Gilbert, AZ &middot; 19 weeks ago</div>
+        </div>
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p class="quote">"We replaced our aging roof in Seville with … The owner stayed involved, checking quality daily and communicating patiently. The crew was respectful, skilled, and finished right on schedule. The difference is night and day."</p>
+          <div class="name">Frankie R.</div>
+          <div class="role">Roof replacement &middot; Seville, Gilbert, AZ &middot; 27 weeks ago</div>
+        </div>
+        <div class="testimonial">
+          <div class="stars">★★★★★</div>
+          <p class="quote">"We replaced our old attic insulation in Ellsworth Heights … explained the benefits clearly, arrived reliably, and did a clean, high-quality job. Our upstairs stays cooler now, even on 110° days."</p>
+          <div class="name">Ralphael J.</div>
+          <div class="role">Attic insulation &middot; Ellsworth Heights &middot; 27 weeks ago</div>
         </div>
         <div class="testimonial">
           <div class="stars">★★★★★</div>

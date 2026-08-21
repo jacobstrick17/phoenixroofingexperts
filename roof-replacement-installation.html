@@ -408,6 +408,44 @@ nav.primary-nav.open {
 }
 nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px; }
 
+
+/* ---------- Job photos ---------- */
+.jobphoto { margin: 0 0 22px; }
+.jobphoto img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: block;
+}
+.jobphoto figcaption {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  margin-top: 9px;
+  line-height: 1.5;
+}
+
+/* Hero with a real photo behind it. The gradient stays as an overlay so the
+   headline keeps its contrast — a photo alone would leave white text sitting
+   on a bright sky. */
+.hero.has-photo {
+  /* Horizontal gradient: heavy on the left where the headline sits, easing off
+     to the right so the photo is actually legible as a roofing job. A uniform
+     dark wash made the image read as grey noise. */
+  background-image:
+    linear-gradient(100deg, rgba(15,36,56,.94) 0%, rgba(15,36,56,.88) 38%, rgba(10,24,38,.55) 72%, rgba(10,24,38,.42) 100%),
+    url("/hero-tile-underlayment.jpg");
+  background-size: cover;
+  background-position: center 45%;
+}
+@media (max-width: 700px) {
+  .hero.has-photo {
+    background-image:
+      linear-gradient(135deg, rgba(15,36,56,.94) 0%, rgba(10,24,38,.90) 100%),
+      url("/hero-tile-underlayment.jpg");
+  }
+}
+
 </style>
 <script type="application/ld+json">
 {
@@ -494,6 +532,12 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
 <section>
   <div class="container two-col">
     <div>
+      
+<figure class="jobphoto">
+  <img src="/tile-lift-and-relay.jpg" alt="Phoenix roofing crew installing underlayment during a tile roof replacement, with stacked tile waiting to be re-laid" loading="lazy" width="1100" height="732">
+  <figcaption>Underlayment going down during a re-roof. This layer, not the tile above it, is what actually keeps water out.</figcaption>
+</figure>
+
       <p>Between intense summer heat and UV exposure, most roofing materials in the Phoenix area have a shorter effective lifespan than in milder climates — typically 15-25 years depending on material and installation quality. If your roof is aging, showing widespread wear, or was damaged badly enough that repeated repairs aren't cost-effective, a full replacement protects your home or building and can meaningfully lower cooling costs.</p>
       <p>We handle the entire process: tear-off and haul-away of the old roofing system, deck inspection and repair, underlayment and flashing, and installation of your new roofing material — backed by manufacturer and workmanship warranties.</p>
       <ul class="service-list">

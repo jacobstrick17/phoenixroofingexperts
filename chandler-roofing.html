@@ -408,6 +408,44 @@ nav.primary-nav.open {
 }
 nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px; }
 
+
+/* ---------- Job photos ---------- */
+.jobphoto { margin: 0 0 22px; }
+.jobphoto img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: block;
+}
+.jobphoto figcaption {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  margin-top: 9px;
+  line-height: 1.5;
+}
+
+/* Hero with a real photo behind it. The gradient stays as an overlay so the
+   headline keeps its contrast — a photo alone would leave white text sitting
+   on a bright sky. */
+.hero.has-photo {
+  /* Horizontal gradient: heavy on the left where the headline sits, easing off
+     to the right so the photo is actually legible as a roofing job. A uniform
+     dark wash made the image read as grey noise. */
+  background-image:
+    linear-gradient(100deg, rgba(15,36,56,.94) 0%, rgba(15,36,56,.88) 38%, rgba(10,24,38,.55) 72%, rgba(10,24,38,.42) 100%),
+    url("/hero-tile-underlayment.jpg");
+  background-size: cover;
+  background-position: center 45%;
+}
+@media (max-width: 700px) {
+  .hero.has-photo {
+    background-image:
+      linear-gradient(135deg, rgba(15,36,56,.94) 0%, rgba(10,24,38,.90) 100%),
+      url("/hero-tile-underlayment.jpg");
+  }
+}
+
 </style>
 <script type="application/ld+json">
 {
@@ -521,6 +559,7 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
 <section>
   <div class="container two-col">
     <div>
+      
       <p>The median Chandler home was built in <strong>1997</strong>, which puts a typical Chandler roof at roughly 29 years old today. In Arizona that is meaningfully past the 20-to-25-year service life of tile underlayment, so most Chandler homeowners we talk to are either due for underlayment replacement or are already living on borrowed time with the original builder material.</p>
       <p>Chandler is really two roofing markets in one city. The older core around Historic Downtown and Arizona Avenue carries 1980s and earlier housing where shingle replacement and full re-roofs dominate. The southern build-out &mdash; Ocotillo, Fulton Ranch, Layton Lakes &mdash; is late-1990s and 2000s tile, which is the classic lift-and-relay profile.</p>
       <p>There's also a commercial side here that most Valley cities don't have to the same degree. The Price Corridor's concentration of office, tech, and industrial buildings means a lot of low-slope TPO and modified bitumen roofs, and those need a completely different maintenance rhythm than a house does.</p>

@@ -408,6 +408,44 @@ nav.primary-nav.open {
 }
 nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px; }
 
+
+/* ---------- Job photos ---------- */
+.jobphoto { margin: 0 0 22px; }
+.jobphoto img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: block;
+}
+.jobphoto figcaption {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  margin-top: 9px;
+  line-height: 1.5;
+}
+
+/* Hero with a real photo behind it. The gradient stays as an overlay so the
+   headline keeps its contrast — a photo alone would leave white text sitting
+   on a bright sky. */
+.hero.has-photo {
+  /* Horizontal gradient: heavy on the left where the headline sits, easing off
+     to the right so the photo is actually legible as a roofing job. A uniform
+     dark wash made the image read as grey noise. */
+  background-image:
+    linear-gradient(100deg, rgba(15,36,56,.94) 0%, rgba(15,36,56,.88) 38%, rgba(10,24,38,.55) 72%, rgba(10,24,38,.42) 100%),
+    url("/hero-tile-underlayment.jpg");
+  background-size: cover;
+  background-position: center 45%;
+}
+@media (max-width: 700px) {
+  .hero.has-photo {
+    background-image:
+      linear-gradient(135deg, rgba(15,36,56,.94) 0%, rgba(10,24,38,.90) 100%),
+      url("/hero-tile-underlayment.jpg");
+  }
+}
+
 </style>
 <script type="application/ld+json">
 {
@@ -521,6 +559,7 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
 <section>
   <div class="container two-col">
     <div>
+      
       <p>The median Tempe home was built in <strong>1984</strong>, tying Phoenix for the oldest housing stock in the metro and making the typical Tempe roof about 42 years old. Unlike the East Valley cities, Tempe is landlocked and fully built out &mdash; there is no new subdivision absorbing the average. The housing stock is what it is, and it keeps getting older.</p>
       <p>That age brings a specific kind of roof. Tempe carries a large share of mid-century ranch and post-war homes with flat or low-slope sections, and those roofs have often been patched repeatedly across three or four ownership changes. Layer upon layer of coating and patch material eventually stops being a roof and starts being archaeology.</p>
       <p>It's also why <strong>spray polyurethane foam</strong> comes up more in Tempe than anywhere else we work. On a low-slope roof, foam goes down seamless with no joints for water to find, adds real insulation value to a house that was built before anyone cared much about it, and can be recoated every several years instead of torn off and replaced. And with Tempe's large rental and investor market around ASU, an owner with several properties tends to care a lot about a roof that can be maintained rather than replaced.</p>

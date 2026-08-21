@@ -408,6 +408,44 @@ nav.primary-nav.open {
 }
 nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px; }
 
+
+/* ---------- Job photos ---------- */
+.jobphoto { margin: 0 0 22px; }
+.jobphoto img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: block;
+}
+.jobphoto figcaption {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  margin-top: 9px;
+  line-height: 1.5;
+}
+
+/* Hero with a real photo behind it. The gradient stays as an overlay so the
+   headline keeps its contrast — a photo alone would leave white text sitting
+   on a bright sky. */
+.hero.has-photo {
+  /* Horizontal gradient: heavy on the left where the headline sits, easing off
+     to the right so the photo is actually legible as a roofing job. A uniform
+     dark wash made the image read as grey noise. */
+  background-image:
+    linear-gradient(100deg, rgba(15,36,56,.94) 0%, rgba(15,36,56,.88) 38%, rgba(10,24,38,.55) 72%, rgba(10,24,38,.42) 100%),
+    url("/hero-tile-underlayment.jpg");
+  background-size: cover;
+  background-position: center 45%;
+}
+@media (max-width: 700px) {
+  .hero.has-photo {
+    background-image:
+      linear-gradient(135deg, rgba(15,36,56,.94) 0%, rgba(10,24,38,.90) 100%),
+      url("/hero-tile-underlayment.jpg");
+  }
+}
+
 </style>
 <script type="application/ld+json">
 {
@@ -529,6 +567,12 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
 <section>
   <div class="container two-col">
     <div>
+      
+<figure class="jobphoto">
+  <img src="/tile-lift-and-relay.jpg" alt="Tile roof lift-and-relay underway near Gilbert, Arizona, with new underlayment installed and the original tile stacked for re-laying" loading="lazy" width="1100" height="732">
+  <figcaption>A lift-and-relay in progress: original tile stacked, new underlayment down, the same tile going back on.</figcaption>
+</figure>
+
       <p>Gilbert grew up fast. The median Gilbert home was built in <strong>2003</strong> &mdash; the newest housing stock of any major East Valley city outside Queen Creek &mdash; which means most of the town went up during a concrete tile boom that ran from the late 1990s through the housing crash.</p>
       <p>That timing matters more than most homeowners realize. Concrete tile itself lasts 40 to 50 years, but the underlayment beneath it &mdash; the membrane that actually keeps water out of your house &mdash; only lasts about 20 to 25 years in Arizona heat. A Gilbert roof built in 2003 is sitting right in the middle of that failure window, even though the tile on top still looks essentially new from the street.</p>
       <p>So the most common call we get in Gilbert isn't a roof replacement at all. It's a <strong>tile lift-and-relay</strong>: we carefully remove and stack your existing tile, replace the failed underlayment and any damaged decking underneath, then re-lay the same tile back down. It costs a fraction of a full replacement and buys another two decades.</p>

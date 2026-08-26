@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Phoenix Roofing Experts — CRM</title>
 <link rel="icon" href="data:,">
@@ -111,7 +111,7 @@ tr:last-child td{border-bottom:none}
 .tasks{display:flex;flex-direction:column;gap:8px;margin-top:14px}
 .task{display:flex;align-items:center;gap:10px;font-size:.87rem;padding:6px 0}
 .task.done span:first-of-type{text-decoration:line-through;color:var(--g500)}
-.task input[type=checkbox]{width:16px;height:16px;accent-color:var(--orange);cursor:pointer;flex-shrink:0}
+.task input[type=checkbox],.taskrow input[type=checkbox],.cbx{width:16px;height:16px;accent-color:var(--orange);cursor:pointer;flex-shrink:0}
 .taskrow{display:flex;justify-content:space-between;align-items:center;background:#fff;padding:12px 16px;
   border-radius:8px;box-shadow:var(--sh);gap:12px}
 .taskrow.over{border-left:3px solid #d64545}
@@ -128,6 +128,16 @@ tr:last-child td{border-bottom:none}
 .fg{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .macts{display:flex;justify-content:flex-end;gap:10px;margin-top:6px}
 
+.b-resto{background:#b8281f}
+.rvacts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.rvacts .btn{padding:8px 14px;font-size:.84rem}
+.shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.shots img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;
+  border:1px solid var(--g200);background:var(--g100)}
+.shots a{display:block}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+/* ---------- tablet ---------- */
 @media(max-width:900px){
   .shell{flex-direction:column}
   .side{width:100%;flex-direction:row;align-items:center;padding:12px 16px}
@@ -137,6 +147,117 @@ tr:last-child td{border-bottom:none}
   .main{padding:20px}
   .dgrid{grid-template-columns:1fr}
   .fg{grid-template-columns:1fr}
+}
+
+/* ---------- any touch device ----------
+   Text-styled buttons render at their line height, around 15px, which is far
+   below what a fingertip can reliably hit. They need an explicit box rather
+   than just a bigger font. Keyed to pointer type, not width, so a finger-driven
+   iPad gets this and a narrow desktop window does not. */
+@media (hover:none) and (pointer:coarse){
+  .btn{padding:12px 18px;min-height:44px}
+  .linkbtn,.back{padding:9px 0;min-height:40px;display:inline-flex;align-items:center}
+  .rlink{min-height:40px;display:inline-flex;align-items:center;padding:4px 0;text-align:left}
+  td a[href^="tel:"]{min-height:40px;display:inline-flex;align-items:center;font-weight:600}
+  .task,.taskrow{gap:14px}
+  /* the whole label is the target, not just the box */
+  .task,.taskcb,label.muted{min-height:40px}
+  label.muted{display:inline-flex;align-items:center;gap:8px}
+  /* HTML5 drag-and-drop does not fire on touch, so on any finger device the
+     stage dropdown is the ONLY way to move a deal. It has to be a real control,
+     not the 24px afterthought it is on desktop. */
+  .dmeta{flex-direction:column;align-items:stretch;gap:8px}
+  .dmeta select{max-width:none;width:100%;min-height:44px;padding:10px}
+  .task input[type=checkbox],.taskrow input[type=checkbox],.cbx{width:22px;height:22px}
+  input,select,textarea{font-size:16px}
+}
+
+/* ---------- phone ----------
+   At this width the sidebar-as-a-row runs out of room: brand, three nav
+   buttons, an email address and a sign-out link cannot share 390px. The nav
+   moves to a fixed bottom bar instead — thumb-reachable, and the standard
+   place to look for it on a phone. */
+@media(max-width:700px){
+  html{-webkit-text-size-adjust:100%}
+
+  .side{padding:10px 14px;gap:10px}
+  .side .bsub{display:none}
+  .side .bname{font-size:.88rem}
+  .sidefoot{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .who{max-width:38vw;margin-bottom:0}
+
+  /* nav becomes a bottom tab bar */
+  .nav{position:fixed;left:0;right:0;bottom:0;z-index:90;margin:0;
+    flex-direction:row;background:var(--navy-d);border-top:1px solid #1c3348;
+    padding:6px 6px calc(6px + env(safe-area-inset-bottom));
+    box-shadow:0 -2px 14px rgba(10,24,38,.3)}
+  .nav button{flex:1;text-align:center;font-size:.78rem;padding:10px 4px;border-radius:8px;
+    min-height:46px;line-height:1.25}
+  .nav button.on{background:var(--orange)}
+  /* keep content clear of the bar */
+  .main{padding:16px 14px calc(74px + env(safe-area-inset-bottom))}
+
+  h1{font-size:1.3rem}
+  .head{gap:12px}
+  .head .btn{width:100%}
+  .search{max-width:none}
+
+  /* iOS zooms the page when focusing an input under 16px. */
+  input,select,textarea{font-size:16px;padding:12px}
+
+
+  /* Board: one column fills the screen and snaps, instead of three half-visible
+     columns fighting for 390px. */
+  .board{gap:12px;scroll-snap-type:x mandatory;padding-bottom:8px}
+  .col{min-width:84vw;width:84vw;scroll-snap-align:start;
+    max-height:none;height:auto}
+  .colbody{max-height:60vh}
+  .dmeta{flex-direction:column;align-items:stretch;gap:8px}
+  .dmeta select{max-width:none;width:100%;font-size:16px;padding:10px;min-height:44px}
+  .deal{padding:14px}
+
+  /* Contacts table collapses to one card per contact. A six-column table
+     cannot be read on a phone, and side-scrolling a table is worse than
+     stacking it. */
+  .tscroll{overflow-x:visible}
+  table{box-shadow:none;background:transparent}
+  thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  table,tbody,tr,td{display:block;width:100%}
+  tr{background:#fff;border-radius:var(--r);box-shadow:var(--sh);
+    margin-bottom:10px;padding:10px 14px 12px}
+  td{border-bottom:none;padding:3px 0;font-size:.88rem;
+    display:flex;justify-content:space-between;align-items:center;gap:14px}
+  td::before{content:attr(data-label);font-size:.7rem;text-transform:uppercase;
+    letter-spacing:.5px;color:var(--g500);font-weight:700;flex-shrink:0}
+
+  /* The name is the card's heading, so it gets the full width and no label. */
+  td[data-label="Name"]{display:block;padding:0 0 2px}
+  td[data-label="Name"]::before{content:none}
+  td[data-label="Name"] .rlink{font-size:1.05rem;min-height:40px;width:100%}
+
+  /* Email is always empty for web leads — the forms don't collect it — and the
+     full record is one tap away on the detail page. Dropping it here nearly
+     halves the card, which is the difference between seeing two contacts per
+     screen and seeing four. */
+  td[data-label="Email"]{display:none}
+  td[data-label="City"],td[data-label="Added"]{color:var(--g500)}
+  td[data-label="Address"]{align-items:flex-start}
+  td[data-label="Address"]::before{padding-top:1px}
+  td[colspan]{display:block;text-align:center;padding:20px 0}
+  td[colspan]::before{content:none}
+
+  /* Modals as bottom sheets — easier to reach, and they don't fight the
+     on-screen keyboard the way a vertically centred box does. */
+  .ovl{padding:0;align-items:flex-end}
+  .modal{max-width:none;border-radius:var(--r) var(--r) 0 0;max-height:92vh}
+  .mbody{padding:18px 18px calc(18px + env(safe-area-inset-bottom))}
+  .macts{flex-direction:column-reverse;gap:8px}
+  .macts .btn{width:100%}
+
+  /* let long values wrap instead of squeezing */
+  .drow,.taskrow{flex-wrap:wrap}
+  .inline{flex-wrap:wrap}
+  .inline input{min-width:100%}
 }
 </style>
 </head>
@@ -200,7 +321,7 @@ async function refreshSession(){
 }
 
 function signOut(){
-  session = null; saveSession(null); cache = { stages:[], deals:[], contacts:[], tasks:[], activities:[] };
+  session = null; saveSession(null); cache = { stages:[], deals:[], contacts:[], tasks:[], activities:[], reviews:[], settings:{} };
   view = { name:"pipeline", contactId:null };
   render();
 }
@@ -241,10 +362,15 @@ async function loadAll(){
     get("deals?select=*&order=created_at.desc"),
     get("contacts?select=*&order=created_at.desc"),
     get("tasks?select=*&order=due_date.asc"),
-    get("activities?select=*&order=created_at.desc")
+    get("activities?select=*&order=created_at.desc"),
+    get("review_requests?select=*&order=send_after.asc"),
+    get("app_settings?select=*")
   ]);
   cache.stages = r[0]||[]; cache.deals = r[1]||[]; cache.contacts = r[2]||[];
   cache.tasks = r[3]||[]; cache.activities = r[4]||[];
+  cache.reviews = r[5]||[];
+  cache.settings = {};
+  (r[6]||[]).forEach(function(row){ cache.settings[row.key] = row.value; });
 }
 
 /* ---------- helpers ---------- */
@@ -254,12 +380,39 @@ function esc(s){
   });
 }
 function money(n){ return n ? "$" + Number(n).toLocaleString() : ""; }
+/* The lead-photos bucket is private, so every image needs a short-lived signed
+   URL minted with the logged-in user's token. Nothing here is ever a public
+   link: these are photographs of customers' homes. */
+async function signedPhotoUrls(paths){
+  if(!paths || !paths.length) return [];
+  var out = [];
+  for(var i=0;i<paths.length;i++){
+    try{
+      var r = await fetch(SB_URL + "/storage/v1/object/sign/lead-photos/" + paths[i], {
+        method:"POST",
+        headers:{ "apikey":SB_KEY,
+                  "Authorization":"Bearer " + (session ? session.access_token : SB_KEY),
+                  "Content-Type":"application/json" },
+        body: JSON.stringify({ expiresIn: 3600 })
+      });
+      if(!r.ok) continue;
+      var d = await r.json();
+      if(d && d.signedURL) out.push(SB_URL + "/storage/v1" + d.signedURL);
+    }catch(e){ /* a missing photo must not break the contact page */ }
+  }
+  return out;
+}
+
 function el(id){ return document.getElementById(id); }
 function contactById(id){ return cache.contacts.filter(function(c){ return c.id===id; })[0]; }
 function srcBadge(s){
-  var cls = s==="website" ? "b-web" : (s==="solar-battery" ? "b-solar" : "b-manual");
-  var label = s==="solar-battery" ? "battery" : (s==="website" ? "roofing" : s);
-  return '<span class="badge '+cls+'">'+esc(label)+'</span>';
+  var map = {
+    "website":       { cls:"b-web",   label:"roofing" },
+    "solar-battery": { cls:"b-solar", label:"battery" },
+    "restoration":   { cls:"b-resto", label:"water damage" }
+  };
+  var m = map[s] || { cls:"b-manual", label: s || "manual" };
+  return '<span class="badge '+m.cls+'">'+esc(m.label)+'</span>';
 }
 function isOverdue(t){
   if(!t.due_date || t.done) return false;
@@ -281,7 +434,7 @@ function sidebar(){
   return '<aside class="side">'
     + '<div class="brandrow"><span class="bmark">&#127968;</span><div>'
     + '<div class="bname">Phoenix Roofing</div><div class="bsub">CRM</div></div></div>'
-    + '<nav class="nav">' + b("pipeline","&#128203; Pipeline") + b("contacts","&#128101; Contacts") + b("tasks","&#9989; Tasks") + '</nav>'
+    + '<nav class="nav">' + b("pipeline","&#128203; Pipeline") + b("contacts","&#128101; Contacts") + b("tasks","&#9989; Tasks") + b("reviews","&#11088; Reviews") + '</nav>'
     + '<div class="sidefoot"><div class="who" title="'+esc(email)+'">'+esc(email)+'</div>'
     + '<button class="linkbtn" id="signout">Sign out</button></div></aside>';
 }
@@ -298,6 +451,7 @@ function renderView(){
   if(view.name==="contacts") return viewContacts();
   if(view.name==="contact")  return viewContact();
   if(view.name==="tasks")    return viewTasks();
+  if(view.name==="reviews")  return viewReviews();
 }
 
 /* ---------- login ---------- */
@@ -426,24 +580,42 @@ function viewContacts(){
 function drawContacts(q){
   q = (q||"").toLowerCase();
   var rows = cache.contacts.filter(function(c){
-    return !q || [c.name,c.email,c.phone,c.city].some(function(v){
+    return !q || [c.name,c.email,c.phone,c.city,c.address].some(function(v){
       return v && String(v).toLowerCase().indexOf(q) > -1;
     });
   }).map(function(c){
-    return '<tr><td><button class="rlink" data-open="'+c.id+'">'+esc(c.name)+'</button></td>'
-      + '<td>'+esc(c.phone||"—")+'</td><td>'+esc(c.email||"—")+'</td><td>'+esc(c.city||"—")+'</td>'
-      + '<td>'+srcBadge(c.source)+'</td>'
-      + '<td>'+new Date(c.created_at).toLocaleDateString()+'</td></tr>';
+    // data-label drives the stacked card layout on phones, where the table
+    // collapses to one row per line and the <thead> is hidden.
+    // The phone is a tel: link so a lead can be called with one tap.
+    var tel = c.phone
+      ? '<a href="tel:'+esc(String(c.phone).replace(/[^0-9+]/g,""))+'">'+esc(c.phone)+'</a>'
+      : "—";
+    return '<tr><td data-label="Name"><button class="rlink" data-open="'+c.id+'">'+esc(c.name)+'</button></td>'
+      + '<td data-label="Phone">'+tel+'</td><td data-label="Email">'+esc(c.email||"—")+'</td>'
+      + '<td data-label="Address">'+esc(c.address||"—")+'</td>'
+      + '<td data-label="City">'+esc(c.city||"—")+'</td>'
+      + '<td data-label="Source">'+srcBadge(c.source)+'</td>'
+      + '<td data-label="Added">'+new Date(c.created_at).toLocaleDateString()+'</td></tr>';
   }).join("");
-  el("tbl").innerHTML = '<table><thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>City</th>'
+  el("tbl").innerHTML = '<div class="tscroll"><table><thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th>City</th>'
     + '<th>Source</th><th>Added</th></tr></thead><tbody>'
-    + (rows || '<tr><td colspan="6" class="muted">No contacts found.</td></tr>') + '</tbody></table>';
+    + (rows || '<tr><td colspan="7" class="muted">No contacts found.</td></tr>') + '</tbody></table></div>';
   Array.prototype.forEach.call(document.querySelectorAll("[data-open]"), function(b){
     b.onclick = function(){ view = { name:"contact", contactId:b.getAttribute("data-open") }; render(); };
   });
 }
 
 /* ---------- contact detail ---------- */
+async function loadShots(c){
+  var box = el("shots");
+  if(!box) return;
+  var urls = await signedPhotoUrls(c.photo_paths);
+  if(!urls.length){ box.innerHTML = '<span class="muted">Photos could not be loaded.</span>'; return; }
+  box.innerHTML = urls.map(function(u){
+    return '<a href="'+u+'" target="_blank" rel="noopener"><img src="'+u+'" loading="lazy" alt="Customer photo"></a>';
+  }).join("");
+}
+
 function viewContact(){
   var c = contactById(view.contactId);
   if(!c){ el("main").innerHTML = '<div class="banner err">Contact not found.</div>'; return; }
@@ -455,9 +627,17 @@ function viewContact(){
     '<button class="back" id="bk">&larr; All contacts</button>'
     + '<div class="head"><div><h1>'+esc(c.name)+'</h1><p class="muted">'
     + (c.phone?'&#128222; '+esc(c.phone)+' &nbsp;':'') + (c.email?'&#9993;&#65039; '+esc(c.email)+' &nbsp;':'')
-    + (c.city?'&#128205; '+esc(c.city):'') + ' &nbsp;' + srcBadge(c.source) + '</p></div>'
+    + (c.address
+        ? '<a href="https://maps.google.com/?q='+encodeURIComponent(c.address+", "+(c.city||"Phoenix")+", AZ")
+          +'" target="_blank" rel="noopener">&#128205; '+esc(c.address)+(c.city?', '+esc(c.city):'')+'</a>'
+        : (c.city?'&#128205; '+esc(c.city):''))
+    + ' &nbsp;' + srcBadge(c.source) + '</p></div>'
     + '<button class="btn btn-p" id="nd2">+ New Deal</button></div>'
     + '<div class="dgrid"><div>'
+    + (c.photo_paths && c.photo_paths.length
+        ? '<section class="panel"><h3>Photos from the customer ('+c.photo_paths.length+')</h3>'
+          + '<div id="shots" class="shots"><span class="muted">Loading\u2026</span></div></section>'
+        : '')
     + '<section class="panel"><h3>Deals</h3>' + (deals.length ? deals.map(function(d){
         var s = cache.stages.filter(function(x){ return x.id===d.stage_id; })[0];
         return '<div class="drow"><div><div class="dtitle">'+esc(d.title)+'</div>'
@@ -482,6 +662,7 @@ function viewContact(){
     + '</div></div>';
 
   el("bk").onclick = function(){ view = { name:"contacts", contactId:null }; render(); };
+  loadShots(c);   // async; the page is already usable without it
   el("nd2").onclick = function(){ newDealModal(c.id); };
   el("af").onsubmit = async function(e){
     e.preventDefault();
@@ -532,11 +713,11 @@ function viewTasks(){
     '<div class="head"><div><h1>Tasks</h1><p class="muted">'
     + cache.tasks.filter(function(t){return !t.done;}).length + ' open across all contacts</p></div>'
     + '<label class="muted" style="display:flex;gap:8px;align-items:center">'
-    + '<input type="checkbox" id="sd"'+(showDone?' checked':'')+' style="width:16px;height:16px"> Show completed</label></div>'
+    + '<input type="checkbox" class="cbx" id="sd"'+(showDone?' checked':'')+'> Show completed</label></div>'
     + '<div class="tasks">' + (list.length ? list.map(function(t){
         var c = contactById(t.contact_id);
         return '<div class="taskrow'+(isOverdue(t)?' over':'')+'">'
-          + '<label class="task'+(t.done?' done':'')+'" style="padding:0">'
+          + '<label class="task taskcb'+(t.done?' done':'')+'">'
           + '<input type="checkbox" data-task="'+t.id+'"'+(t.done?' checked':'')+'>'
           + '<span>'+esc(t.title)+'</span></label>'
           + '<div style="display:flex;gap:14px;align-items:center;font-size:.82rem">'
@@ -549,6 +730,128 @@ function viewTasks(){
   Array.prototype.forEach.call(document.querySelectorAll("[data-open]"), function(b){
     b.onclick = function(){ view = { name:"contact", contactId:b.getAttribute("data-open") }; render(); };
   });
+}
+
+/* ---------- reviews ---------- */
+/* The map pack is gated on review count, and the third slot for "phoenix
+   roofing companies" sits at 28 reviews. This screen exists so the ask happens
+   every single time a job closes instead of whenever someone remembers. */
+function reviewMsg(c){
+  var url = cache.settings.google_review_url || "";
+  var first = String(c && c.name || "").trim().split(/\s+/)[0] || "there";
+  return "Hi " + first + ", thanks again for letting us work on your roof. "
+       + "If we did right by you, would you mind leaving a quick Google review? "
+       + "It genuinely helps a small local company. " + url;
+}
+
+function viewReviews(){
+  var url = cache.settings.google_review_url;
+  var now = new Date();
+
+  var rows = (cache.reviews||[]).slice().sort(function(a,b){
+    return new Date(a.send_after) - new Date(b.send_after);
+  });
+  var due     = rows.filter(function(r){ return r.status==="scheduled" && new Date(r.send_after) <= now; });
+  var waiting = rows.filter(function(r){ return r.status==="scheduled" && new Date(r.send_after) >  now; });
+  var done    = rows.filter(function(r){ return r.status!=="scheduled"; });
+
+  function card(r, isDue){
+    var c = contactById(r.contact_id) || {};
+    var d = (cache.deals||[]).filter(function(x){ return x.id===r.deal_id; })[0];
+    var when = new Date(r.send_after);
+    var phone = String(c.phone||"").replace(/[^0-9+]/g,"");
+    var body  = encodeURIComponent(reviewMsg(c));
+    var acts  = "";
+    if(isDue && url){
+      acts = (phone ? '<a class="btn btn-p" href="sms:'+phone+'?&body='+body+'">Text request</a>' : '')
+           + (c.email ? '<a class="btn" href="mailto:'+esc(c.email)
+               +'?subject='+encodeURIComponent("Thanks from Phoenix Roofing Experts")
+               +'&body='+body+'">Email</a>' : '')
+           + '<button class="btn" data-rvsent="'+r.id+'">Mark sent</button>'
+           + '<button class="linkbtn" data-rvskip="'+r.id+'">Skip</button>';
+    } else if(isDue && !url){
+      acts = '<span class="muted">Add your Google review link below to enable sending.</span>';
+    } else if(r.status==="scheduled"){
+      acts = '<span class="muted">Due '+when.toLocaleDateString()+'</span>'
+           + '<button class="linkbtn" data-rvnow="'+r.id+'">Send now</button>';
+    } else {
+      acts = '<span class="muted">'+esc(r.status)+(r.sent_at?" &middot; "+new Date(r.sent_at).toLocaleDateString():"")+'</span>';
+    }
+    return '<div class="taskrow"><div>'
+      + '<button class="rlink" data-open="'+esc(r.contact_id)+'">'+esc(c.name||"Unknown")+'</button>'
+      + (d ? '<div class="muted" style="font-size:.8rem">'+esc(d.title)+'</div>' : '')
+      + '</div><div class="rvacts">'+acts+'</div></div>';
+  }
+
+  el("main").innerHTML =
+    '<div class="head"><div><h1>Reviews</h1><p class="muted">'
+    + due.length + ' ready to send &middot; ' + waiting.length + ' waiting &middot; ' + done.length + ' handled'
+    + '</p></div></div><div id="err"></div>'
+    + (!url ? '<div class="banner err" style="margin-bottom:18px">'
+        + '<strong>Setup needed.</strong> Paste your Google review link below and every won job '
+        + 'will queue a request automatically.</div>' : '')
+    + '<section class="panel"><h3>Ready to send ('+due.length+')</h3>'
+    + (due.length ? '<div class="tasks">'+due.map(function(r){return card(r,true);}).join("")+'</div>'
+                  : '<div class="hint">Nothing due. Requests appear here '
+                    + (cache.settings.review_delay_hours||48) + ' hours after a deal is marked Won.</div>')
+    + '</section>'
+    + (waiting.length ? '<section class="panel"><h3>Waiting ('+waiting.length+')</h3><div class="tasks">'
+        + waiting.map(function(r){return card(r,false);}).join("")+'</div></section>' : '')
+    + (done.length ? '<section class="panel"><h3>Handled ('+done.length+')</h3><div class="tasks">'
+        + done.slice(0,15).map(function(r){return card(r,false);}).join("")+'</div></section>' : '')
+    + '<section class="panel"><h3>Settings</h3>'
+    + '<div class="field" style="margin-bottom:12px"><label>Google review link</label>'
+    + '<input id="rvurl" placeholder="https://g.page/r/..../review" value="'+esc(url||"")+'"></div>'
+    + '<p class="muted" style="font-size:.82rem">Google Business Profile &rarr; <em>Ask for reviews</em> &rarr; copy link.</p>'
+    + '<div class="field" style="margin:12px 0"><label>Wait this many hours after a job is won</label>'
+    + '<input id="rvdelay" type="number" min="0" value="'+esc(cache.settings.review_delay_hours||"48")+'"></div>'
+    + '<button class="btn btn-p" id="rvsave">Save settings</button></section>';
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-open]"), function(b){
+    b.onclick = function(){ view = { name:"contact", contactId:b.getAttribute("data-open") }; render(); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-rvsent]"), function(b){
+    b.onclick = function(){ setReview(b.getAttribute("data-rvsent"), { status:"sent", sent_at:new Date().toISOString() }); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-rvskip]"), function(b){
+    b.onclick = function(){ setReview(b.getAttribute("data-rvskip"), { status:"skipped" }); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-rvnow]"), function(b){
+    b.onclick = function(){ setReview(b.getAttribute("data-rvnow"), { send_after:new Date().toISOString() }); };
+  });
+  el("rvsave").onclick = saveReviewSettings;
+}
+
+async function setReview(id, patch){
+  var r = (cache.reviews||[]).filter(function(x){ return String(x.id)===String(id); })[0];
+  if(!r) return;
+  var before = Object.assign({}, r);
+  Object.assign(r, patch);          // optimistic
+  renderView();
+  try{
+    await api("review_requests?id=eq."+encodeURIComponent(id),
+      { method:"PATCH", headers:{ "Prefer":"return=minimal" }, body:JSON.stringify(patch) });
+  }catch(e){
+    Object.assign(r, before); renderView();
+    if(el("err")) el("err").innerHTML = '<div class="banner err">'+esc(e.message)+'</div>';
+  }
+}
+
+async function saveReviewSettings(){
+  var url = el("rvurl").value.trim();
+  var delay = String(parseInt(el("rvdelay").value, 10) || 48);
+  try{
+    await api("app_settings?on_conflict=key",
+      { method:"POST",
+        headers:{ "Prefer":"resolution=merge-duplicates,return=minimal" },
+        body: JSON.stringify([{ key:"google_review_url", value:url||null },
+                              { key:"review_delay_hours", value:delay }]) });
+    cache.settings.google_review_url = url || null;
+    cache.settings.review_delay_hours = delay;
+    renderView();
+  }catch(e){
+    if(el("err")) el("err").innerHTML = '<div class="banner err">'+esc(e.message)+'</div>';
+  }
 }
 
 /* ---------- modals ---------- */
@@ -571,6 +874,7 @@ function newContactModal(){
     '<form id="cf" class="stack"><div class="field"><label>Name*</label><input id="cn" required></div>'
     + '<div class="fg"><div class="field"><label>Phone</label><input id="cp"></div>'
     + '<div class="field"><label>Email</label><input id="ce" type="email"></div></div>'
+    + '<div class="field"><label>Address</label><input id="ca" autocomplete="street-address"></div>'
     + '<div class="field"><label>City</label><input id="cc" value="Phoenix"></div>'
     + '<div class="field"><label>Notes</label><textarea id="cno"></textarea></div>'
     + '<div id="cerr"></div><div class="macts"><button type="button" class="btn" data-cancel>Cancel</button>'
@@ -581,6 +885,7 @@ function newContactModal(){
     try{
       var c = await post("contacts", { name:el("cn").value.trim(), phone:el("cp").value.trim()||null,
         email:el("ce").value.trim()||null, city:el("cc").value.trim()||null,
+        address:el("ca").value.trim()||null,
         notes:el("cno").value.trim()||null, source:"manual" });
       if(c && c[0]) cache.contacts.unshift(c[0]);
       document.body.removeChild(m); renderView();

@@ -594,8 +594,22 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
         <input type="email" id="email" name="email">
       </div>
       <div class="form-field">
+        <label for="address">Property Address <span style="font-weight:400;color:#6b7684;">(optional)</span></label>
+        <input type="text" id="address" name="address" autocomplete="street-address"
+               placeholder="e.g. 1234 E Camelback Rd">
+        <span style="display:block;font-size:.78rem;color:#6b7684;margin-top:5px;">
+          Helps us look at your roof before we call.</span>
+      </div>
+      <div class="form-field">
         <label for="city">City</label>
-        <input type="text" id="city" name="city" placeholder="e.g. Scottsdale" value="Phoenix">
+        <input type="text" id="city" name="city" autocomplete="address-level2"
+               placeholder="e.g. Scottsdale" value="Phoenix">
+      </div>
+      <div class="form-field">
+        <label for="photos">Photos of the problem <span style="font-weight:400;color:#6b7684;">(optional)</span></label>
+        <input type="file" id="photos" name="photos" accept="image/*" multiple>
+        <span style="display:block;font-size:.78rem;color:#6b7684;margin-top:5px;">
+          Up to 6. A photo often tells us more than a description does.</span>
       </div>
       <div class="form-field">
         <label for="service">Service Needed</label>
@@ -689,7 +703,7 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
   <div class="container" style="text-align:center;">
     <span class="eyebrow">Nearby</span>
     <h2>We Also Serve</h2>
-    <p style="color:#495057;"><a href="/gilbert-roofing.html">Gilbert Roofing</a> &nbsp;&middot;&nbsp; <a href="/chandler-roofing.html">Chandler Roofing</a> &nbsp;&middot;&nbsp; <a href="/mesa-roofing.html">Mesa Roofing</a> &nbsp;&middot;&nbsp; <a href="/tempe-roofing.html">Tempe Roofing</a></p>
+    <p style="color:#495057;"><a href="/gilbert-roofing.html">Gilbert Roofing</a> &nbsp;&middot;&nbsp; <a href="/san-tan-valley-roofing.html">San Tan Valley Roofing</a> &nbsp;&middot;&nbsp; <a href="/chandler-roofing.html">Chandler Roofing</a> &nbsp;&middot;&nbsp; <a href="/mesa-roofing.html">Mesa Roofing</a> &nbsp;&middot;&nbsp; <a href="/tempe-roofing.html">Tempe Roofing</a></p>
   </div>
 </section>
 
@@ -747,6 +761,8 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
             <li>Peoria, AZ</li>
             <li>Surprise, AZ</li>
             <li>Ahwatukee, AZ</li>
+            <li>Queen Creek, AZ</li>
+            <li><a href="/san-tan-valley-roofing.html">San Tan Valley, AZ</a></li>
         </ul>
       </div>
     </div>
@@ -770,6 +786,109 @@ window.SUPABASE_CONFIG = {
   url: "https://bghvhowpwbicojgwwirx.supabase.co",
   anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnaHZob3dwd2JpY29qZ3d3aXJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyNjI3NDcsImV4cCI6MjEwMjgzODc0N30.zgXQCv9mOuzHT0237HUOL1zBYZeBw5FSgXaUYYeVRyY"
 };
+
+/* ---- phone validation ------------------------------------------------------
+   A lead with an unreachable number is not a lead. Nicole Richardson submitted
+   twice on Aug 25 with "4071480123" and "1480123141" - both ten digits, both
+   impossible, and both accepted silently. She then wrote in the message box
+   asking for an email address, which is a customer doing our error handling
+   for us.
+
+   North American numbering rules: the area code and the exchange code each
+   have to start 2-9. That single rule rejects both of her attempts, while a
+   naive "is it ten digits" check accepts both. */
+function normalizePhone(raw) {
+  var d = String(raw || "").replace(/\D/g, "");
+  if (d.length === 11 && d.charAt(0) === "1") d = d.slice(1);
+  if (d.length !== 10) return null;
+  if (!/^[2-9]\d{2}[2-9]\d{6}$/.test(d)) return null;
+  return "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6);
+}
+
+/* Email and address validation. Both are required on every form as of Aug 26 -
+   the Nicole Richardson leads proved that a single unverifiable contact method
+   is a single point of failure. Requiring both means every lead has a fallback. */
+function normalizeEmail(raw) {
+  var v = String(raw || "").trim();
+  // Deliberately permissive: one @, a dot in the domain, no whitespace. Strict
+  // RFC validation rejects real addresses and wins nothing.
+  if (!/^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/.test(v)) return null;
+  return v.toLowerCase();
+}
+
+function normalizeAddress(raw) {
+  var v = String(raw || "").trim().replace(/\s+/g, " ");
+  if (v.length < 5) return null;
+  if (!/\d/.test(v)) return null;        // a US street address has a number
+  if (!/[a-z]/i.test(v)) return null;    // ...and a street name
+  return v;
+}
+
+
+/* ---- optional lead photos -------------------------------------------------
+   Phone cameras produce 4-12MB files. A homeowner standing in their driveway
+   on cell data will abandon a form that uploads those, so every image is
+   re-encoded to at most 1600px / q0.82 in the browser first - typically a
+   20-40x reduction.
+
+   Uploads are best-effort BY DESIGN. If a photo fails, the lead is still
+   submitted without it. Losing a photo is an inconvenience; losing the lead
+   is losing the job. */
+function leadRef(){
+  try { if (window.crypto && crypto.randomUUID) return crypto.randomUUID(); } catch (e) {}
+  return "r" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+}
+
+function shrinkImage(file, max) {
+  max = max || 1600;
+  return new Promise(function (resolve, reject) {
+    var url = URL.createObjectURL(file);
+    var img = new Image();
+    img.onload = function () {
+      URL.revokeObjectURL(url);
+      var s = Math.min(1, max / Math.max(img.width, img.height));
+      var c = document.createElement("canvas");
+      c.width = Math.round(img.width * s);
+      c.height = Math.round(img.height * s);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob(function (b) {
+        b ? resolve({ blob: b, type: "image/jpeg", ext: "jpg" })
+          : reject(new Error("encode failed"));
+      }, "image/jpeg", 0.82);
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); reject(new Error("decode failed")); };
+    img.src = url;
+  });
+}
+
+async function uploadLeadPhotos(input, ref, sbUrl, sbKey) {
+  if (!input || !input.files || !input.files.length) return [];
+  var files = Array.prototype.slice.call(input.files, 0, 6);   // cap per submission
+  var paths = [];
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i], part;
+    try {
+      part = await shrinkImage(f);
+    } catch (e) {
+      // Canvas can't decode HEIC outside Safari. Send the original rather than
+      // dropping the photo, as long as it fits the bucket's 8MB ceiling.
+      if (f.size > 8 * 1024 * 1024) { continue; }
+      part = { blob: f, type: f.type || "application/octet-stream",
+               ext: (f.name.split(".").pop() || "jpg").toLowerCase().slice(0, 5) };
+    }
+    var path = ref + "/" + (i + 1) + "." + part.ext;
+    try {
+      var r = await fetch(sbUrl + "/storage/v1/object/lead-photos/" + path, {
+        method: "POST",
+        headers: { "apikey": sbKey, "Authorization": "Bearer " + sbKey,
+                   "Content-Type": part.type, "x-upsert": "false" },
+        body: part.blob
+      });
+      if (r.ok) paths.push(path);
+    } catch (e) { /* best effort */ }
+  }
+  return paths;
+}
 
 // Phoenix Roofing Experts — shared site behavior
 
@@ -800,14 +919,40 @@ async function handleLeadSubmit(e) {
   var name = form.querySelector('[name="name"]').value.trim();
   var email = form.querySelector('[name="email"]') ? form.querySelector('[name="email"]').value.trim() : "";
   var phone = form.querySelector('[name="phone"]') ? form.querySelector('[name="phone"]').value.trim() : "";
+  var address = form.querySelector('[name="address"]') ? form.querySelector('[name="address"]').value.trim() : "";
   var city = form.querySelector('[name="city"]') ? form.querySelector('[name="city"]').value.trim() : "Phoenix";
   var service = form.querySelector('[name="service"]') ? form.querySelector('[name="service"]').value : "";
   var message = form.querySelector('[name="message"]') ? form.querySelector('[name="message"]').value.trim() : "";
+  var photoInput = form.querySelector('[name="photos"]');
 
-  // Phone is required: the site publishes no email address, so a lead without a
-  // phone number would be one we have no fast way to reach.
-  if (!name || !phone) {
-    setStatus(statusEl, "Please enter your name and a phone number so we can reach you.", true);
+  // Name, phone, email and address are ALL required and validated. Everything is
+  // checked before anything is sent, and the first bad field gets focus.
+  function fail(msg, field) {
+    setStatus(statusEl, msg, true);
+    var f2 = form.querySelector('[name="' + field + '"]');
+    if (f2) f2.focus();
+  }
+
+  if (!name) { fail("Please enter your name.", "name"); return; }
+
+  var phoneFmt = normalizePhone(phone);
+  if (!phoneFmt) {
+    fail(phone ? "That phone number doesn't look right \u2014 please double-check it. It's how we'll get back to you."
+               : "Please enter a phone number so we can reach you.", "phone");
+    return;
+  }
+
+  var emailFmt = normalizeEmail(email);
+  if (!emailFmt) {
+    fail(email ? "That email address doesn't look right \u2014 please double-check it."
+               : "Please enter an email address \u2014 it's our backup if we can't reach you by phone.", "email");
+    return;
+  }
+
+  var addressFmt = normalizeAddress(address);
+  if (!addressFmt) {
+    fail(address ? "Please enter a full street address, including the number."
+                 : "Please enter the property address so we can look at your roof before we call.", "address");
     return;
   }
 
@@ -818,15 +963,25 @@ async function handleLeadSubmit(e) {
 
   var payload = {
     name: name,
-    email: email || null,
-    phone: phone || null,
+    email: emailFmt,
+    phone: phoneFmt,
     city: city || "Phoenix",
-    address: null,
+    address: addressFmt,
     source: "website",
     notes: notes || null
   };
 
   if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Sending..."; }
+
+  var photoPaths = [];
+  if (photoInput && photoInput.files && photoInput.files.length) {
+    if (submitBtn) submitBtn.textContent = "Uploading photos...";
+    setStatus(statusEl, "Uploading your photos, one moment\u2026", false);
+    photoPaths = await uploadLeadPhotos(photoInput, leadRef(),
+                                        cfg.url, cfg.anonKey);
+    if (submitBtn) submitBtn.textContent = "Sending...";
+  }
+  payload.photo_paths = photoPaths.length ? photoPaths : null;
 
   try {
     var res = await fetch(cfg.url + "/rest/v1/contacts", {

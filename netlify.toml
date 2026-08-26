@@ -1,20 +1,18 @@
 # Netlify config for the Phoenix Roofing Experts site.
-# Deploy: point Netlify at this `site` folder. No build command needed.
+# The deployed site is FLAT: every page sits at the root, no subfolders.
+# Nothing here should reference /services/ or /service-areas/ any more.
 
 [build]
   publish = "."
   command = ""
 
 # Serve /roof-repair instead of /roof-repair.html when someone types it.
+# Flat build, so slugs resolve straight off the root.
 [[redirects]]
-  from = "/services/:slug"
-  to = "/services/:slug.html"
+  from = "/:slug"
+  to = "/:slug.html"
   status = 200
-
-[[redirects]]
-  from = "/service-areas/:slug"
-  to = "/service-areas/:slug.html"
-  status = 200
+  force = false
 
 # Custom 404 for anything unmatched.
 [[redirects]]
@@ -29,12 +27,19 @@
     X-Frame-Options = "SAMEORIGIN"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
+# Explicit content types for the crawler files.
+# X-Content-Type-Options=nosniff above means a client will NOT guess the type,
+# so if the host ever labels these as anything but XML/plain text, Googlebot
+# refuses to parse them and reports "Sitemap could not be read". Stating the
+# type here removes that whole failure mode.
 [[headers]]
-  for = "/css/*"
+  for = "/sitemap.xml"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Type = "application/xml; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
 
 [[headers]]
-  for = "/js/*"
+  for = "/robots.txt"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Type = "text/plain; charset=utf-8"
+    Cache-Control = "public, max-age=3600"

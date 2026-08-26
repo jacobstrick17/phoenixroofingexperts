@@ -502,6 +502,14 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
     {
       "@type": "City",
       "name": "Ahwatukee"
+    },
+    {
+      "@type": "City",
+      "name": "Queen Creek"
+    },
+    {
+      "@type": "City",
+      "name": "San Tan Valley"
     }
   ],
   "sameAs": [
@@ -562,7 +570,7 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
       <p style="font-size:0.9rem;color:#6b7684;">Roofing work performed by Sun &amp; Shield Construction and Roofing, Arizona ROC #366348.</p>
       <h3 style="margin-top:32px;">Service Area</h3>
       <div class="chip-row">
-        <span class="chip">Phoenix, AZ</span><span class="chip">Scottsdale, AZ</span><span class="chip">Tempe, AZ</span><span class="chip">Mesa, AZ</span><span class="chip">Chandler, AZ</span><span class="chip">Gilbert, AZ</span><span class="chip">Glendale, AZ</span><span class="chip">Peoria, AZ</span><span class="chip">Surprise, AZ</span><span class="chip">Ahwatukee, AZ</span>
+        <span class="chip">Phoenix, AZ</span><span class="chip">Scottsdale, AZ</span><span class="chip">Tempe, AZ</span><span class="chip">Mesa, AZ</span><span class="chip">Chandler, AZ</span><span class="chip">Gilbert, AZ</span><span class="chip">Glendale, AZ</span><span class="chip">Peoria, AZ</span><span class="chip">Surprise, AZ</span><span class="chip">Ahwatukee, AZ</span><span class="chip">Queen Creek, AZ</span><span class="chip">San Tan Valley, AZ</span>
       </div>
     </div>
     <div>
@@ -673,6 +681,8 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
             <li>Peoria, AZ</li>
             <li>Surprise, AZ</li>
             <li>Ahwatukee, AZ</li>
+            <li>Queen Creek, AZ</li>
+            <li><a href="/san-tan-valley-roofing.html">San Tan Valley, AZ</a></li>
         </ul>
       </div>
     </div>
@@ -696,6 +706,44 @@ window.SUPABASE_CONFIG = {
   url: "https://bghvhowpwbicojgwwirx.supabase.co",
   anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnaHZob3dwd2JpY29qZ3d3aXJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyNjI3NDcsImV4cCI6MjEwMjgzODc0N30.zgXQCv9mOuzHT0237HUOL1zBYZeBw5FSgXaUYYeVRyY"
 };
+
+/* ---- phone validation ------------------------------------------------------
+   A lead with an unreachable number is not a lead. Nicole Richardson submitted
+   twice on Aug 25 with "4071480123" and "1480123141" - both ten digits, both
+   impossible, and both accepted silently. She then wrote in the message box
+   asking for an email address, which is a customer doing our error handling
+   for us.
+
+   North American numbering rules: the area code and the exchange code each
+   have to start 2-9. That single rule rejects both of her attempts, while a
+   naive "is it ten digits" check accepts both. */
+function normalizePhone(raw) {
+  var d = String(raw || "").replace(/\D/g, "");
+  if (d.length === 11 && d.charAt(0) === "1") d = d.slice(1);
+  if (d.length !== 10) return null;
+  if (!/^[2-9]\d{2}[2-9]\d{6}$/.test(d)) return null;
+  return "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6);
+}
+
+/* Email and address validation. Both are required on every form as of Aug 26 -
+   the Nicole Richardson leads proved that a single unverifiable contact method
+   is a single point of failure. Requiring both means every lead has a fallback. */
+function normalizeEmail(raw) {
+  var v = String(raw || "").trim();
+  // Deliberately permissive: one @, a dot in the domain, no whitespace. Strict
+  // RFC validation rejects real addresses and wins nothing.
+  if (!/^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/.test(v)) return null;
+  return v.toLowerCase();
+}
+
+function normalizeAddress(raw) {
+  var v = String(raw || "").trim().replace(/\s+/g, " ");
+  if (v.length < 5) return null;
+  if (!/\d/.test(v)) return null;        // a US street address has a number
+  if (!/[a-z]/i.test(v)) return null;    // ...and a street name
+  return v;
+}
+
 
 /* ---- optional lead photos -------------------------------------------------
    Phone cameras produce 4-12MB files. A homeowner standing in their driveway
@@ -797,10 +845,34 @@ async function handleLeadSubmit(e) {
   var message = form.querySelector('[name="message"]') ? form.querySelector('[name="message"]').value.trim() : "";
   var photoInput = form.querySelector('[name="photos"]');
 
-  // Phone is required: the site publishes no email address, so a lead without a
-  // phone number would be one we have no fast way to reach.
-  if (!name || !phone) {
-    setStatus(statusEl, "Please enter your name and a phone number so we can reach you.", true);
+  // Name, phone, email and address are ALL required and validated. Everything is
+  // checked before anything is sent, and the first bad field gets focus.
+  function fail(msg, field) {
+    setStatus(statusEl, msg, true);
+    var f2 = form.querySelector('[name="' + field + '"]');
+    if (f2) f2.focus();
+  }
+
+  if (!name) { fail("Please enter your name.", "name"); return; }
+
+  var phoneFmt = normalizePhone(phone);
+  if (!phoneFmt) {
+    fail(phone ? "That phone number doesn't look right \u2014 please double-check it. It's how we'll get back to you."
+               : "Please enter a phone number so we can reach you.", "phone");
+    return;
+  }
+
+  var emailFmt = normalizeEmail(email);
+  if (!emailFmt) {
+    fail(email ? "That email address doesn't look right \u2014 please double-check it."
+               : "Please enter an email address \u2014 it's our backup if we can't reach you by phone.", "email");
+    return;
+  }
+
+  var addressFmt = normalizeAddress(address);
+  if (!addressFmt) {
+    fail(address ? "Please enter a full street address, including the number."
+                 : "Please enter the property address so we can look at your roof before we call.", "address");
     return;
   }
 
@@ -811,10 +883,10 @@ async function handleLeadSubmit(e) {
 
   var payload = {
     name: name,
-    email: email || null,
-    phone: phone || null,
+    email: emailFmt,
+    phone: phoneFmt,
     city: city || "Phoenix",
-    address: address || null,
+    address: addressFmt,
     source: "website",
     notes: notes || null
   };

@@ -321,7 +321,7 @@ async function refreshSession(){
 }
 
 function signOut(){
-  session = null; saveSession(null); cache = { stages:[], deals:[], contacts:[], tasks:[], activities:[], reviews:[], settings:{} };
+  session = null; saveSession(null); cache = { stages:[], deals:[], contacts:[], tasks:[], activities:[], reviews:[], settings:{}, appts:[] };
   view = { name:"pipeline", contactId:null };
   render();
 }
@@ -364,13 +364,15 @@ async function loadAll(){
     get("tasks?select=*&order=due_date.asc"),
     get("activities?select=*&order=created_at.desc"),
     get("review_requests?select=*&order=send_after.asc"),
-    get("app_settings?select=*")
+    get("app_settings?select=*"),
+    get("appointments?select=*&order=slot_date.asc")
   ]);
   cache.stages = r[0]||[]; cache.deals = r[1]||[]; cache.contacts = r[2]||[];
   cache.tasks = r[3]||[]; cache.activities = r[4]||[];
   cache.reviews = r[5]||[];
   cache.settings = {};
   (r[6]||[]).forEach(function(row){ cache.settings[row.key] = row.value; });
+  cache.appts = r[7]||[];
 }
 
 /* ---------- helpers ---------- */
@@ -434,7 +436,7 @@ function sidebar(){
   return '<aside class="side">'
     + '<div class="brandrow"><span class="bmark">&#127968;</span><div>'
     + '<div class="bname">Phoenix Roofing</div><div class="bsub">CRM</div></div></div>'
-    + '<nav class="nav">' + b("pipeline","&#128203; Pipeline") + b("contacts","&#128101; Contacts") + b("tasks","&#9989; Tasks") + b("reviews","&#11088; Reviews") + '</nav>'
+    + '<nav class="nav">' + b("pipeline","&#128203; Pipeline") + b("contacts","&#128101; Contacts") + b("tasks","&#9989; Tasks") + b("appts","&#128197; Visits") + b("reviews","&#11088; Reviews") + '</nav>'
     + '<div class="sidefoot"><div class="who" title="'+esc(email)+'">'+esc(email)+'</div>'
     + '<button class="linkbtn" id="signout">Sign out</button></div></aside>';
 }
@@ -452,6 +454,7 @@ function renderView(){
   if(view.name==="contact")  return viewContact();
   if(view.name==="tasks")    return viewTasks();
   if(view.name==="reviews")  return viewReviews();
+  if(view.name==="appts")    return viewAppts();
 }
 
 /* ---------- login ---------- */
@@ -736,12 +739,29 @@ function viewTasks(){
 /* The map pack is gated on review count, and the third slot for "phoenix
    roofing companies" sits at 28 reviews. This screen exists so the ask happens
    every single time a job closes instead of whenever someone remembers. */
-function reviewMsg(c){
+function reviewMsg(c, deal){
   var url = cache.settings.google_review_url || "";
   var first = String(c && c.name || "").trim().split(/\s+/)[0] || "there";
+  // Customers type their own city, so "San tan valley" comes through as typed.
+  // Title-case it for the message rather than quoting it back at them oddly.
+  var city = (c && c.city) ? String(c.city).trim().toLowerCase().replace(/\b[a-z]/g, function(m){ return m.toUpperCase(); }) : "";
+  var svc  = (deal && deal.service_type) ? String(deal.service_type).trim().toLowerCase() : "";
+
+  // The ask PROMPTS for specifics; it never supplies the words. Google reads
+  // review text for relevance, so "replaced the underlayment on our tile roof
+  // in Gilbert" makes us findable for that work in that city in a way that
+  // "great job" never will. But the customer has to write it, in their words,
+  // about what actually happened - anything else is coordinated review content
+  // and risks the whole profile.
+  var hint = "";
+  if (svc && city)      hint = "If you get a second, mentioning the " + svc + " and that you're in " + city + " really helps neighbors find us. ";
+  else if (svc)         hint = "If you get a second, mentioning the " + svc + " really helps neighbors find us. ";
+  else if (city)        hint = "If you get a second, mentioning that you're in " + city + " really helps neighbors find us. ";
+
   return "Hi " + first + ", thanks again for letting us work on your roof. "
        + "If we did right by you, would you mind leaving a quick Google review? "
-       + "It genuinely helps a small local company. " + url;
+       + hint
+       + "A photo of the finished roof helps too, if you have one. " + url;
 }
 
 function viewReviews(){
@@ -760,7 +780,7 @@ function viewReviews(){
     var d = (cache.deals||[]).filter(function(x){ return x.id===r.deal_id; })[0];
     var when = new Date(r.send_after);
     var phone = String(c.phone||"").replace(/[^0-9+]/g,"");
-    var body  = encodeURIComponent(reviewMsg(c));
+    var body  = encodeURIComponent(reviewMsg(c, d));
     var acts  = "";
     if(isDue && url){
       acts = (phone ? '<a class="btn btn-p" href="sms:'+phone+'?&body='+body+'">Text request</a>' : '')
@@ -850,6 +870,108 @@ async function saveReviewSettings(){
     cache.settings.review_delay_hours = delay;
     renderView();
   }catch(e){
+    if(el("err")) el("err").innerHTML = '<div class="banner err">'+esc(e.message)+'</div>';
+  }
+}
+
+/* ---------- inspections ---------- */
+/* Bookings arrive from the roof age check with a date, a window, an address and
+   whatever the homeowner is worried about. They are the highest-intent thing
+   this business receives, so they get their own screen rather than being
+   buried in a contact record. */
+function apptDate(d){
+  var dt = new Date(d + "T12:00:00");
+  return dt.toLocaleDateString(undefined, { weekday:"short", month:"short", day:"numeric" });
+}
+function isToday(d){
+  var t = new Date(); t.setHours(0,0,0,0);
+  return new Date(d + "T12:00:00").getTime() === t.getTime();
+}
+function isPast(d){
+  var t = new Date(); t.setHours(0,0,0,0);
+  return new Date(d + "T12:00:00") < t;
+}
+
+function viewAppts(){
+  var rows = (cache.appts||[]).slice();
+  var needsConfirm = rows.filter(function(a){ return a.status==="requested" && !isPast(a.slot_date); });
+  var upcoming     = rows.filter(function(a){ return a.status==="confirmed" && !isPast(a.slot_date); });
+  var past         = rows.filter(function(a){ return isPast(a.slot_date) || a.status==="completed"
+                                                  || a.status==="cancelled" || a.status==="no-show"; });
+
+  function card(a, showActions){
+    var c = contactById(a.contact_id) || {};
+    var phone = String(c.phone||"").replace(/[^0-9+]/g,"");
+    var maps = "https://maps.google.com/?q=" + encodeURIComponent(a.address + ", " + (a.city||"Phoenix") + ", AZ");
+    var today = isToday(a.slot_date);
+    return '<div class="taskrow' + (today ? " over" : "") + '" style="align-items:flex-start">'
+      + '<div style="min-width:0">'
+      + '<div style="display:flex;gap:9px;align-items:baseline;flex-wrap:wrap">'
+      +   '<strong style="color:var(--navy)">' + esc(apptDate(a.slot_date)) + '</strong>'
+      +   '<span class="badge ' + (a.slot_window==="morning" ? "b-web" : "b-solar") + '">'
+      +     esc(a.slot_window==="morning" ? "8am–12pm" : "12pm–4pm") + '</span>'
+      +   (today ? '<span class="overtxt">TODAY</span>' : '')
+      + '</div>'
+      + '<div style="margin-top:6px"><button class="rlink" data-open="'+esc(a.contact_id)+'">'
+      +   esc(c.name || "Unknown") + '</button></div>'
+      + (c.phone ? '<div><a href="tel:'+phone+'">'+esc(c.phone)+'</a></div>' : '')
+      + '<div style="font-size:.85rem;margin-top:2px"><a href="'+maps+'" target="_blank" rel="noopener">&#128205; '
+      +   esc(a.address) + (a.city ? ", " + esc(a.city) : "") + '</a></div>'
+      + (a.concern ? '<div class="muted" style="font-size:.85rem;margin-top:6px">&ldquo;'+esc(a.concern)+'&rdquo;</div>' : '')
+      + '</div>'
+      + '<div class="rvacts">'
+      + (showActions
+          ? (a.status==="requested"
+              ? '<button class="btn btn-p" data-apok="'+a.id+'">Confirm</button>'
+              : '<button class="btn" data-apdone="'+a.id+'">Mark done</button>')
+            + '<button class="linkbtn" data-apno="'+a.id+'">Cancel</button>'
+          : '<span class="muted" style="font-size:.82rem">'+esc(a.status)+'</span>')
+      + '</div></div>';
+  }
+
+  el("main").innerHTML =
+    '<div class="head"><div><h1>Visits</h1><p class="muted">'
+    + needsConfirm.length + ' to confirm &middot; ' + upcoming.length + ' upcoming</p></div></div>'
+    + '<div id="err"></div>'
+    + (needsConfirm.length
+        ? '<section class="panel"><h3>Needs confirming ('+needsConfirm.length+')</h3>'
+          + '<p class="muted" style="font-size:.86rem;margin-top:-6px">They booked themselves and are '
+          + 'expecting a text back. Confirm quickly &mdash; that message is the first thing they judge you on.</p>'
+          + '<div class="tasks">'+needsConfirm.map(function(a){return card(a,true);}).join("")+'</div></section>'
+        : '')
+    + '<section class="panel"><h3>Upcoming ('+upcoming.length+')</h3>'
+    + (upcoming.length ? '<div class="tasks">'+upcoming.map(function(a){return card(a,true);}).join("")+'</div>'
+                       : '<div class="hint">Nothing on the calendar yet. Bookings come in from the roof age check page.</div>')
+    + '</section>'
+    + (past.length ? '<section class="panel"><h3>Past ('+past.length+')</h3><div class="tasks">'
+        + past.slice(0,12).map(function(a){return card(a,false);}).join("")+'</div></section>' : '');
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-open]"), function(b){
+    b.onclick = function(){ view = { name:"contact", contactId:b.getAttribute("data-open") }; render(); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-apok]"), function(b){
+    b.onclick = function(){ setAppt(b.getAttribute("data-apok"),
+      { status:"confirmed", confirmed_at:new Date().toISOString() }); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-apdone]"), function(b){
+    b.onclick = function(){ setAppt(b.getAttribute("data-apdone"), { status:"completed" }); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-apno]"), function(b){
+    b.onclick = function(){ setAppt(b.getAttribute("data-apno"), { status:"cancelled" }); };
+  });
+}
+
+async function setAppt(id, patch){
+  var a = (cache.appts||[]).filter(function(x){ return String(x.id)===String(id); })[0];
+  if(!a) return;
+  var before = Object.assign({}, a);
+  Object.assign(a, patch);
+  renderView();
+  try{
+    await api("appointments?id=eq."+encodeURIComponent(id),
+      { method:"PATCH", headers:{ "Prefer":"return=minimal" }, body:JSON.stringify(patch) });
+  }catch(e){
+    Object.assign(a, before); renderView();
     if(el("err")) el("err").innerHTML = '<div class="banner err">'+esc(e.message)+'</div>';
   }
 }

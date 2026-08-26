@@ -446,6 +446,41 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
   }
 }
 
+
+/* ---- inspection booking ---------------------------------------------------
+   Day and window pickers are buttons, not a <select>: on a phone a native date
+   picker hides availability, and the whole point is showing which slots are
+   already gone before someone gets attached to one. */
+.daystrip{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;
+  scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.day{flex:0 0 auto;scroll-snap-align:start;width:62px;min-height:76px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  background:#fff;border:1px solid #dfe3e8;border-radius:10px;cursor:pointer;
+  font-family:inherit;color:#33404f;padding:8px 4px;transition:border-color .12s,background .12s}
+.day:hover:not(:disabled){border-color:#e8590c}
+.day.on{background:#e8590c;border-color:#e8590c;color:#fff}
+.day.full,.day:disabled{opacity:.4;cursor:not-allowed;background:#f7f8fa}
+.day .dw{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;opacity:.75}
+.day .dd{font-size:1.35rem;font-weight:700;line-height:1.1}
+.day .dm{font-size:.72rem;opacity:.75}
+
+.winrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.win{display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+  background:#fff;border:1px solid #dfe3e8;border-radius:10px;padding:14px 16px;
+  cursor:pointer;font-family:inherit;color:#33404f;text-align:left;min-height:66px;
+  transition:border-color .12s,background .12s}
+.win:hover:not(:disabled){border-color:#e8590c}
+.win.on{background:#e8590c;border-color:#e8590c;color:#fff}
+.win.full,.win:disabled{opacity:.45;cursor:not-allowed;background:#f7f8fa}
+.win strong{font-size:.98rem}
+.win span{font-size:.8rem;opacity:.8}
+.day:focus-visible,.win:focus-visible{outline:2px solid #e8590c;outline-offset:2px}
+
+@media (max-width:520px){
+  .winrow{grid-template-columns:1fr}
+  .day{width:58px;min-height:70px}
+}
+
 </style>
 <script type="application/ld+json">
 {
@@ -535,6 +570,7 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
           <li><a href="/commercial-roofing.html">Commercial</a></li>
           <li><a href="/foam-roofing.html">Foam Roofing</a></li>
           <li><a href="/clay-tile-roofing.html">Clay Tile</a></li>
+          <li><a href="/roof-age-check.html">Is My Roof Due?</a></li>
           <li><a href="/choosing-a-roofing-contractor.html">Hiring Guide</a></li>
           <li><a href="/about.html">About</a></li>
           <li><a href="/contact.html">Contact</a></li>
@@ -589,7 +625,7 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
 <div class="hero-card">
   <h3>Free San Tan Valley Roofing Estimate</h3>
   <p style="font-size:0.9rem;color:#495057;">No obligation. We typically respond within one business hour.</p>
-  <form data-lead-form>
+  <form data-lead-form novalidate data-track="lead">
     <div class="form-grid">
       <div class="form-field full">
         <label for="name">Full Name*</label>
@@ -799,6 +835,88 @@ window.SUPABASE_CONFIG = {
   anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnaHZob3dwd2JpY29qZ3d3aXJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyNjI3NDcsImV4cCI6MjEwMjgzODc0N30.zgXQCv9mOuzHT0237HUOL1zBYZeBw5FSgXaUYYeVRyY"
 };
 
+/* ---- measurement -----------------------------------------------------------
+   No cookies and no persistent id. The session key lives in sessionStorage, so
+   it dies when the tab closes and cannot follow anyone between visits. Enough
+   to answer "what gets seen" and "where do people quit"; not enough to build a
+   profile of anybody.
+
+   Every call is fire-and-forget. Measurement must never delay a page or block
+   a form submission — if the beacon fails, the visitor never knows. */
+var TRK = (function () {
+  var KEY = "pre-sid";
+  function sid() {
+    try {
+      var v = sessionStorage.getItem(KEY);
+      if (!v) {
+        v = (window.crypto && crypto.randomUUID)
+          ? crypto.randomUUID()
+          : "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+        sessionStorage.setItem(KEY, v);
+      }
+      return v;
+    } catch (e) {
+      // Private mode or storage disabled: still measure, just as a one-off.
+      return "nostore-" + Math.random().toString(36).slice(2, 10);
+    }
+  }
+
+  function post(table, row) {
+    var cfg = window.SUPABASE_CONFIG;
+    if (!cfg) return;
+    try {
+      fetch(cfg.url + "/rest/v1/" + table, {
+        method: "POST", keepalive: true,
+        headers: { "Content-Type": "application/json", "apikey": cfg.anonKey,
+                   "Authorization": "Bearer " + cfg.anonKey, "Prefer": "return=minimal" },
+        body: JSON.stringify(row)
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  return {
+    view: function () {
+      post("page_views", {
+        path: location.pathname || "/",
+        // Host only. A full referrer URL can carry someone's search terms.
+        referrer: document.referrer ? (function () {
+          try { return new URL(document.referrer).hostname; } catch (e) { return null; }
+        })() : null,
+        session_id: sid(),
+        device: window.matchMedia("(max-width:820px)").matches ? "mobile" : "desktop"
+      });
+    },
+    event: function (name, meta) {
+      post("funnel_events", {
+        session_id: sid(), event: name,
+        path: location.pathname || "/", meta: meta || {}
+      });
+    },
+    sid: sid
+  };
+})();
+
+document.addEventListener("DOMContentLoaded", function () {
+  TRK.view();
+
+  // form_start fires ONCE per form, on first real interaction. The gap between
+  // form_start and form_submit is the abandonment rate — the single most useful
+  // number for turning clicks into leads.
+  document.querySelectorAll("form").forEach(function (f) {
+    var started = false;
+    f.addEventListener("focusin", function () {
+      if (started) return;
+      started = true;
+      TRK.event("form_start", { form: f.getAttribute("data-track") || "lead" });
+    });
+  });
+
+  // Tap-to-call is a conversion too, and it leaves no other trace.
+  document.querySelectorAll('a[href^="tel:"]').forEach(function (a) {
+    a.addEventListener("click", function () { TRK.event("call_click", {}); });
+  });
+});
+
 /* ---- phone validation ------------------------------------------------------
    A lead with an unreachable number is not a lead. Nicole Richardson submitted
    twice on Aug 25 with "4071480123" and "1480123141" - both ten digits, both
@@ -941,6 +1059,7 @@ async function handleLeadSubmit(e) {
   // checked before anything is sent, and the first bad field gets focus.
   function fail(msg, field) {
     setStatus(statusEl, msg, true);
+    if (window.TRK) TRK.event("form_error", { field: field, kind: "validation" });
     var f2 = form.querySelector('[name="' + field + '"]');
     if (f2) f2.focus();
   }
@@ -1013,9 +1132,11 @@ async function handleLeadSubmit(e) {
     }
 
     form.reset();
+    if (window.TRK) TRK.event("form_submit", { service: service || null, photos: photoPaths.length });
     setStatus(statusEl, "Thanks! Your request has been received — a member of our team will call you back shortly.", false);
   } catch (err) {
     console.error(err);
+    if (window.TRK) TRK.event("form_error", { message: String(err && err.message || err).slice(0, 140) });
     setStatus(statusEl, "Something went wrong sending your request. Please call us directly instead.", true);
   } finally {
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.getAttribute("data-default-text") || "Get My Free Estimate"; }

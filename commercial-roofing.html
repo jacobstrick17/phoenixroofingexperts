@@ -451,8 +451,18 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
    Day and window pickers are buttons, not a <select>: on a phone a native date
    picker hides availability, and the whole point is showing which slots are
    already gone before someone gets attached to one. */
+/* min-width:0 is load-bearing. Grid and flex items default to min-width:auto,
+   which refuses to shrink below their content — so without this the strip
+   measures the full width of 14 buttons and drags the page sideways instead
+   of scrolling inside itself. */
 .daystrip{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;
+  min-width:0;max-width:100%;
   scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.form-field,.form-field.full{min-width:0}
+/* Same min-width:auto trap as the day strip, but for the page's own layout
+   grids. Without this a single wide child stops the whole column shrinking on
+   a narrow phone and the page scrolls sideways. */
+.two-col > *,.grid-2 > *,.grid-3 > *,.grid-4 > *,.form-grid > *{min-width:0}
 .day{flex:0 0 auto;scroll-snap-align:start;width:62px;min-height:76px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
   background:#fff;border:1px solid #dfe3e8;border-radius:10px;cursor:pointer;
@@ -479,6 +489,40 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
 @media (max-width:520px){
   .winrow{grid-template-columns:1fr}
   .day{width:58px;min-height:70px}
+}
+
+
+/* The header is sticky, so anything scrolled to by script lands underneath it.
+   scroll-margin-top reserves the header's height at every scroll target. */
+.daystrip,.winrow,.form-field,#result,[data-form-status]{scroll-margin-top:96px}
+
+
+/* Narrow phones: the header's phone-number button plus the menu toggle plus the
+   logo exceeded 360px, pushing every page sideways. This has been true on every
+   page since launch — it only surfaced when a horizontal scroller on the
+   estimate form made me check widths site-wide. */
+@media (max-width: 430px) {
+  .nav-wrap { gap: 8px; }
+  .site-header .logo { font-size: .95rem; min-width: 0; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; }
+  .nav-cta { gap: 6px; min-width: 0; flex-shrink: 0; }
+  .nav-cta .btn { padding: 9px 11px; font-size: .82rem; white-space: nowrap; }
+  .menu-toggle { font-size: 1.4rem; padding: 0 2px; }
+}
+@media (max-width: 380px) {
+  /* Below this the number itself is the problem — show the action, not the digits.
+     The link still dials; only the label shortens. */
+  .nav-cta .btn { font-size: 0; padding: 9px 13px; }
+  .nav-cta .btn::before { content: "Call"; font-size: .86rem; }
+}
+
+
+/* Long CTA labels (city names make some of them long) hit .btn's white-space:
+   nowrap and refuse to wrap, dragging the page sideways on narrow phones.
+   Let them wrap — except the header's phone button, which must stay on one line. */
+@media (max-width: 560px) {
+  .btn { white-space: normal; text-align: center; }
+  .nav-cta .btn { white-space: nowrap; }
 }
 
 </style>
@@ -640,11 +684,21 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
         <label for="message">Tell us about your roof</label>
         <textarea id="message" name="message" placeholder="Leak, storm damage, new build, re-roof, etc."></textarea>
       </div>
+      <div class="form-field full">
+        <label>Pick a day for your free inspection</label>
+        <div id="ldays" class="daystrip"></div>
+      </div>
+      <div class="form-field full" id="lwinwrap" hidden>
+        <label>Morning or afternoon?</label>
+        <div id="lwins" class="winrow"></div>
+      </div>
     </div>
     <div style="margin-top:16px;">
       <button type="submit" class="btn" data-default-text="Get My Free Estimate">Get My Free Estimate</button>
     </div>
     <div data-form-status id="form-status"></div>
+    <p style="font-size:.82rem;color:#6b7684;margin-top:10px">
+      No time here that works? <a href="#" data-callback-instead>Have us call you instead</a>.</p>
     <p class="form-note">By submitting, you agree to be contacted by Phoenix Roofing Experts about your roofing project.</p>
   </form>
 </div>
@@ -798,6 +852,117 @@ window.SUPABASE_CONFIG = {
   url: "https://bghvhowpwbicojgwwirx.supabase.co",
   anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnaHZob3dwd2JpY29qZ3d3aXJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyNjI3NDcsImV4cCI6MjEwMjgzODc0N30.zgXQCv9mOuzHT0237HUOL1zBYZeBw5FSgXaUYYeVRyY"
 };
+
+
+/* ---- inspection calendar on the estimate form ------------------------------
+   The estimate form is the primary call to action on every page, so the
+   scheduling belongs here rather than only behind the roof age checker. Day
+   and window are buttons, not a native date input, because availability has to
+   be visible before someone picks. */
+var LCAL = (function () {
+  var DAYS_OUT = 21, CAPACITY = 2;
+  var load = {}, chosen = { date: null, window: null };
+  var DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  var MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  function iso(d){
+    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0")
+         + "-" + String(d.getDate()).padStart(2,"0");
+  }
+  function rpc(fn, args){
+    var cfg = window.SUPABASE_CONFIG;
+    if (!cfg) return Promise.resolve(null);
+    return fetch(cfg.url + "/rest/v1/rpc/" + fn, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json", "apikey":cfg.anonKey,
+                "Authorization":"Bearer " + cfg.anonKey },
+      body: JSON.stringify(args || {})
+    }).then(function(r){ return r.ok ? r.json() : null; })
+      .catch(function(){ return null; });
+  }
+
+  function paintDays(){
+    var strip = document.getElementById("ldays");
+    if (!strip) return;
+    strip.innerHTML = "";
+    var made = 0, d = new Date();
+    d.setDate(d.getDate() + 1);              // never today
+    for (var i = 0; i < DAYS_OUT && made < 14; i++, d.setDate(d.getDate()+1)) {
+      if (d.getDay() === 0) continue;        // closed Sundays
+      var key = iso(d);
+      var full = (load[key+"|morning"]||0) >= CAPACITY && (load[key+"|afternoon"]||0) >= CAPACITY;
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "day" + (full ? " full" : "");
+      b.disabled = full; b.setAttribute("data-date", key);
+      b.innerHTML = '<span class="dw">'+DOW[d.getDay()]+'</span>'
+                  + '<span class="dd">'+d.getDate()+'</span>'
+                  + '<span class="dm">'+MON[d.getMonth()]+'</span>';
+      strip.appendChild(b); made++;
+    }
+  }
+
+  function paintWindows(){
+    var wrap = document.getElementById("lwinwrap"), row = document.getElementById("lwins");
+    if (!wrap || !row) return;
+    row.innerHTML = "";
+    [["morning","Morning","8am – 12pm"],["afternoon","Afternoon","12pm – 4pm"]].forEach(function(w){
+      var full = (load[chosen.date + "|" + w[0]] || 0) >= CAPACITY;
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "win" + (full ? " full" : "");
+      b.disabled = full; b.setAttribute("data-win", w[0]);
+      b.innerHTML = '<strong>'+w[1]+'</strong><span>'+(full ? "Fully booked" : w[2])+'</span>';
+      row.appendChild(b);
+    });
+    wrap.hidden = false;
+  }
+
+  async function refresh(){
+    var rows = await rpc("slot_load", { days: DAYS_OUT });
+    load = {};
+    (rows || []).forEach(function(r){ load[r.slot_date + "|" + r.slot_window] = Number(r.taken) || 0; });
+    paintDays();
+  }
+
+  function init(){
+    var strip = document.getElementById("ldays");
+    if (!strip) return;
+    refresh();
+    strip.addEventListener("click", function(e){
+      var b = e.target.closest(".day"); if (!b || b.disabled) return;
+      Array.prototype.forEach.call(strip.querySelectorAll(".day"), function(x){ x.classList.remove("on"); });
+      b.classList.add("on");
+      chosen.date = b.getAttribute("data-date"); chosen.window = null;
+      paintWindows();
+    });
+    var row = document.getElementById("lwins");
+    if (row) row.addEventListener("click", function(e){
+      var b = e.target.closest(".win"); if (!b || b.disabled) return;
+      Array.prototype.forEach.call(row.querySelectorAll(".win"), function(x){ x.classList.remove("on"); });
+      b.classList.add("on");
+      chosen.window = b.getAttribute("data-win");
+    });
+  }
+
+  return { init:init, refresh:refresh, rpc:rpc,
+           get:function(){ return chosen; },
+           clear:function(){ chosen = { date:null, window:null };
+             var w = document.getElementById("lwinwrap"); if (w) w.hidden = true; } };
+})();
+
+// "Have us call you instead" — nobody gets trapped by a calendar with no time
+// they can make. Falls back to the plain callback request.
+var CALLBACK_ONLY = false;
+document.addEventListener("DOMContentLoaded", function () {
+  LCAL.init();
+  document.querySelectorAll("[data-callback-instead]").forEach(function (a) {
+    a.addEventListener("click", function (e) {
+      e.preventDefault();
+      CALLBACK_ONLY = true;
+      var f = a.closest("form") || document.querySelector("[data-lead-form]");
+      if (f) f.requestSubmit ? f.requestSubmit() : f.dispatchEvent(new Event("submit", {cancelable:true}));
+    });
+  });
+});
 
 /* ---- measurement -----------------------------------------------------------
    No cookies and no persistent id. The session key lives in sessionStorage, so
@@ -1078,6 +1243,47 @@ async function handleLeadSubmit(e) {
   }
   payload.photo_paths = photoPaths.length ? photoPaths : null;
 
+  var slot = LCAL.get();
+  if (!CALLBACK_ONLY && (!slot.date || !slot.window)) {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.getAttribute("data-default-text") || "Get My Free Estimate"; }
+    fail("Pick a day and a time for your free inspection \u2014 or choose \u201chave us call you instead\u201d below.", "name");
+    var strip = document.getElementById("ldays");
+    if (strip) strip.scrollIntoView({ behavior:"smooth", block:"center" });
+    return;
+  }
+
+  if (!CALLBACK_ONLY && slot.date && slot.window) {
+    try {
+      var res = await LCAL.rpc("book_inspection", {
+        p_name:name, p_phone:phoneFmt, p_email:emailFmt, p_address:addressFmt,
+        p_city:city || "Phoenix", p_concern:message || null,
+        p_date:slot.date, p_window:slot.window, p_source:"website",
+        p_notes:notes || null, p_photo_paths:photoPaths.length ? photoPaths : null
+      });
+      if (res && res.ok) {
+        if (window.TRK) TRK.event("booking", { service: service || null, window: slot.window, photos: photoPaths.length });
+        form.reset(); LCAL.clear(); LCAL.refresh();
+        setStatus(statusEl, "You're booked \u2014 we'll text you shortly to confirm the time.", false);
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.getAttribute("data-default-text") || "Get My Free Estimate"; }
+        return;
+      }
+      if (res && res.reason === "slot_full") {
+        await LCAL.refresh(); LCAL.clear();
+        if (window.TRK) TRK.event("form_error", { form:"lead", kind:"slot_full" });
+        setStatus(statusEl, "Sorry \u2014 someone just took that slot. Pick another and we'll get you in.", true);
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.getAttribute("data-default-text") || "Get My Free Estimate"; }
+        return;
+      }
+      // Booking unavailable for some other reason: record it and fall through to
+      // a plain callback request rather than losing the lead entirely.
+      if (window.TRK) TRK.event("form_error", { form:"lead", kind:"booking_failed",
+        reason: (res && res.reason) ? String(res.reason) : "no_response" });
+    } catch (err) {
+      console.error(err);
+      if (window.TRK) TRK.event("form_error", { form:"lead", kind:"booking_threw" });
+    }
+  }
+
   try {
     var res = await fetch(cfg.url + "/rest/v1/contacts", {
       method: "POST",
@@ -1096,8 +1302,10 @@ async function handleLeadSubmit(e) {
     }
 
     form.reset();
-    if (window.TRK) TRK.event("form_submit", { service: service || null, photos: photoPaths.length });
-    setStatus(statusEl, "Thanks! Your request has been received — a member of our team will call you back shortly.", false);
+    if (window.TRK) TRK.event("form_submit", { service: service || null, photos: photoPaths.length,
+                                               callback_only: CALLBACK_ONLY });
+    setStatus(statusEl, "Thanks \u2014 we'll call you back shortly to set up your free inspection.", false);
+    CALLBACK_ONLY = false;
   } catch (err) {
     console.error(err);
     if (window.TRK) TRK.event("form_error", { message: String(err && err.message || err).slice(0, 140) });

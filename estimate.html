@@ -97,15 +97,6 @@ input:focus,textarea:focus{outline:2px solid var(--orange);outline-offset:1px}
 </div>
 
 <script>
-// Shared Supabase config for Phoenix Roofing Experts website
-// This is the PUBLIC anon key — designed to be exposed in client-side code and
-// not a secret. What it can DO is governed by the Row Level Security policies in
-// /crm/supabase/migration.sql.
-//
-// As of the auth migration, this key can do exactly ONE thing: insert a row into
-// `contacts` with source = 'website'. It cannot read, update, or delete anything,
-// and it cannot touch deals, tasks, or activities. Reading CRM data requires a
-// logged-in session.
 window.SUPABASE_CONFIG = {
   url: "https://bghvhowpwbicojgwwirx.supabase.co",
   anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnaHZob3dwd2JpY29qZ3d3aXJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyNjI3NDcsImV4cCI6MjEwMjgzODc0N30.zgXQCv9mOuzHT0237HUOL1zBYZeBw5FSgXaUYYeVRyY"

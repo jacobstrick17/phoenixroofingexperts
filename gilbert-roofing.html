@@ -614,6 +614,7 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
           <li><a href="/commercial-roofing.html">Commercial</a></li>
           <li><a href="/foam-roofing.html">Foam Roofing</a></li>
           <li><a href="/clay-tile-roofing.html">Clay Tile</a></li>
+          <li><a href="/roof-cost-phoenix.html">Roof Cost</a></li>
           <li><a href="/roof-age-check.html">Is My Roof Due?</a></li>
           <li><a href="/choosing-a-roofing-contractor.html">Hiring Guide</a></li>
           <li><a href="/about.html">About</a></li>
@@ -809,7 +810,7 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
   <div class="container" style="text-align:center;">
     <span class="eyebrow">Nearby</span>
     <h2>We Also Serve</h2>
-    <p style="color:#495057;"><a href="/san-tan-valley-roofing.html">San Tan Valley Roofing</a> &nbsp;&middot;&nbsp; <a href="/chandler-roofing.html">Chandler Roofing</a> &nbsp;&middot;&nbsp; <a href="/mesa-roofing.html">Mesa Roofing</a> &nbsp;&middot;&nbsp; <a href="/tempe-roofing.html">Tempe Roofing</a> &nbsp;&middot;&nbsp; <a href="/glendale-roofing.html">Glendale Roofing</a></p>
+    <p style="color:#495057;"><a href="/san-tan-valley-roofing.html">San Tan Valley Roofing</a> &nbsp;&middot;&nbsp; <a href="/chandler-roofing.html">Chandler Roofing</a> &nbsp;&middot;&nbsp; <a href="/mesa-roofing.html">Mesa Roofing</a> &nbsp;&middot;&nbsp; <a href="/scottsdale-roofing.html">Scottsdale Roofing</a> &nbsp;&middot;&nbsp; <a href="/tempe-roofing.html">Tempe Roofing</a> &nbsp;&middot;&nbsp; <a href="/glendale-roofing.html">Glendale Roofing</a></p>
   </div>
 </section>
 
@@ -858,7 +859,7 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
         <h4>Service Areas</h4>
         <ul>
             <li>Phoenix, AZ</li>
-            <li>Scottsdale, AZ</li>
+            <li><a href="/scottsdale-roofing.html">Scottsdale, AZ</a></li>
             <li><a href="/tempe-roofing.html">Tempe, AZ</a></li>
             <li><a href="/mesa-roofing.html">Mesa, AZ</a></li>
             <li><a href="/chandler-roofing.html">Chandler, AZ</a></li>
@@ -879,18 +880,26 @@ nav.primary-nav.open ul { flex-direction: column; padding: 16px 20px; gap: 16px;
   </div>
 </footer>
 <script>
-// Shared Supabase config for Phoenix Roofing Experts website
-// This is the PUBLIC anon key — designed to be exposed in client-side code and
-// not a secret. What it can DO is governed by the Row Level Security policies in
-// /crm/supabase/migration.sql.
+// Shared Supabase config for Phoenix Roofing Experts.
 //
-// As of the auth migration, this key can do exactly ONE thing: insert a row into
-// `contacts` with source = 'website'. It cannot read, update, or delete anything,
-// and it cannot touch deals, tasks, or activities. Reading CRM data requires a
-// logged-in session.
+// Both values below are PUBLIC and meant to be readable in page source.
+// What they can DO is decided by Row Level Security and by the intake key,
+// not by keeping them secret.
+//
+// The publishable key on its own can read nothing and write nothing: every
+// table in Ridgeline is closed to anonymous callers. The only way in is the
+// handful of SECURITY DEFINER functions the site calls below, and each of
+// those demands an intake key.
+//
+// An intake key maps to exactly one company and grants exactly one power:
+// file a lead into that company's pipeline. It cannot read a lead back, list
+// anything, or touch another company. Rotate one in the CRM if a site is ever
+// scraped for spam and the old key stops working immediately.
 window.SUPABASE_CONFIG = {
-  url: "https://bghvhowpwbicojgwwirx.supabase.co",
-  anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnaHZob3dwd2JpY29qZ3d3aXJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyNjI3NDcsImV4cCI6MjEwMjgzODc0N30.zgXQCv9mOuzHT0237HUOL1zBYZeBw5FSgXaUYYeVRyY"
+  url: "https://ydfgllpozihgjuoxulrf.supabase.co",
+  anonKey: "sb_publishable_DnZ8wsW76lp_djiPQp1Xgw_20eS_cNW",
+  intakeKey: "6bedd085efbc4a228be9597b9b4756bc",        // the estimate form and site analytics
+  checkerKey: "8a5cc0a368d4475288d8da830d7bbbf2"         // the roof-age checker, so its leads stay labelled
 };
 
 
@@ -957,7 +966,8 @@ var LCAL = (function () {
   }
 
   async function refresh(){
-    var rows = await rpc("slot_load", { days: DAYS_OUT });
+    var rows = await rpc("slot_load_public", {
+      p_key: (window.SUPABASE_CONFIG||{}).intakeKey, p_days: DAYS_OUT });
     load = {};
     (rows || []).forEach(function(r){ load[r.slot_date + "|" + r.slot_window] = Number(r.taken) || 0; });
     paintDays();
@@ -1014,6 +1024,22 @@ document.addEventListener("DOMContentLoaded", function () {
    a form submission — if the beacon fails, the visitor never knows. */
 var TRK = (function () {
   var KEY = "pre-sid";
+  var SRC = "pre-src";
+
+  /* The channel that produced this visit, from ?s= on the entry link.
+     Kept for the whole session so an internal click doesn't erase it.
+     Format is deliberately narrow — the database refuses anything else,
+     so a stuffed query string never reaches the analytics table. */
+  function src() {
+    try {
+      var q = new URLSearchParams(location.search).get("s");
+      if (q && /^[a-z0-9][a-z0-9_-]{0,31}$/.test(q)) {
+        sessionStorage.setItem(SRC, q);
+        return q;
+      }
+      return sessionStorage.getItem(SRC) || null;
+    } catch (e) { return null; }
+  }
   function sid() {
     try {
       var v = sessionStorage.getItem(KEY);
@@ -1030,38 +1056,41 @@ var TRK = (function () {
     }
   }
 
-  function post(table, row) {
+  function post(fn, args) {
     var cfg = window.SUPABASE_CONFIG;
-    if (!cfg) return;
+    if (!cfg || !cfg.intakeKey) return;
+    args.p_key = cfg.intakeKey;
     try {
-      fetch(cfg.url + "/rest/v1/" + table, {
+      fetch(cfg.url + "/rest/v1/rpc/" + fn, {
         method: "POST", keepalive: true,
         headers: { "Content-Type": "application/json", "apikey": cfg.anonKey,
-                   "Authorization": "Bearer " + cfg.anonKey, "Prefer": "return=minimal" },
-        body: JSON.stringify(row)
+                   "Authorization": "Bearer " + cfg.anonKey },
+        body: JSON.stringify(args)
       }).catch(function () {});
     } catch (e) {}
   }
 
   return {
     view: function () {
-      post("page_views", {
-        path: location.pathname || "/",
+      post("track_view", {
+        p_path: location.pathname || "/",
+        p_source: src(),
         // Host only. A full referrer URL can carry someone's search terms.
-        referrer: document.referrer ? (function () {
+        p_referrer: document.referrer ? (function () {
           try { return new URL(document.referrer).hostname; } catch (e) { return null; }
         })() : null,
-        session_id: sid(),
-        device: window.matchMedia("(max-width:820px)").matches ? "mobile" : "desktop"
+        p_session: sid(),
+        p_device: window.matchMedia("(max-width:820px)").matches ? "mobile" : "desktop"
       });
     },
     event: function (name, meta) {
-      post("funnel_events", {
-        session_id: sid(), event: name,
-        path: location.pathname || "/", meta: meta || {}
+      post("track_event", {
+        p_session: sid(), p_event: name,
+        p_path: location.pathname || "/", p_meta: meta || {}
       });
     },
-    sid: sid
+    sid: sid,
+    src: src
   };
 })();
 
@@ -1294,11 +1323,14 @@ async function handleLeadSubmit(e) {
 
   if (!CALLBACK_ONLY && slot.date && slot.window) {
     try {
-      var res = await LCAL.rpc("book_inspection", {
+      var res = await LCAL.rpc("book_inspection_public", {
+        p_key: cfg.intakeKey,
         p_name:name, p_phone:phoneFmt, p_email:emailFmt, p_address:addressFmt,
         p_city:city || "Phoenix", p_concern:message || null,
-        p_date:slot.date, p_window:slot.window, p_source:"website",
-        p_notes:notes || null, p_photo_paths:photoPaths.length ? photoPaths : null
+        p_date:slot.date, p_window:slot.window,
+        p_notes:notes || null, p_photo_paths:photoPaths.length ? photoPaths : null,
+        // Ties this lead back to the page that earned the visit.
+        p_session: (window.TRK ? TRK.sid() : null)
       });
       if (res && res.ok) {
         if (window.TRK) TRK.event("booking", { service: service || null, window: slot.window, photos: photoPaths.length });
@@ -1325,15 +1357,21 @@ async function handleLeadSubmit(e) {
   }
 
   try {
-    var res = await fetch(cfg.url + "/rest/v1/contacts", {
+    var res = await fetch(cfg.url + "/rest/v1/rpc/submit_lead", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "apikey": cfg.anonKey,
-        "Authorization": "Bearer " + cfg.anonKey,
-        "Prefer": "return=minimal"
+        "Authorization": "Bearer " + cfg.anonKey
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        p_key: cfg.intakeKey,
+        p_name: payload.name, p_phone: payload.phone, p_email: payload.email,
+        p_address: payload.address, p_city: payload.city,
+        p_service: service || null, p_notes: payload.notes,
+        p_photo_paths: payload.photo_paths,
+        p_session: (window.TRK ? TRK.sid() : null)
+      })
     });
 
     if (!res.ok) {
